@@ -1,5 +1,5 @@
 @echo off
-title DaBot v2 - Launcher Automatico
+title DaBot v2 - Launcher Simplificado
 color 0A
 
 :: ASCII Art del bot
@@ -12,7 +12,7 @@ echo ██████╔╝██║  ██║██████╔╝╚█�
 echo ╚═════╝ ╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝         ╚═══╝  ╚══════╝
 echo.
 echo ========================================================================
-echo                    DABOT V2 - LAUNCHER AUTOMATICO
+echo                    DABOT V2 - LAUNCHER SIMPLIFICADO
 echo ========================================================================
 echo.
 
@@ -33,33 +33,13 @@ if %errorlevel% neq 0 (
 echo ✅ Python detectado correctamente
 echo.
 
-:: Verificar si existe el archivo de requisitos
-if not exist requirements.txt (
-    echo ❌ ERROR: No se encontró requirements.txt
-    echo.
-    echo Asegúrate de que estás en la carpeta correcta del bot.
-    echo.
-    pause
-    exit /b 1
-)
-
-echo ✅ Archivo requirements.txt encontrado
-echo.
-
-:: Verificar si existe el archivo del bot
+:: Verificar archivos esenciales
 if not exist bot.py (
     echo ❌ ERROR: No se encontró bot.py
-    echo.
-    echo Asegúrate de que estás en la carpeta correcta del bot.
-    echo.
     pause
     exit /b 1
 )
 
-echo ✅ Archivo bot.py encontrado
-echo.
-
-:: Verificar si existe el archivo .env
 if not exist .env (
     echo ⚠️  AVISO: No se encontró archivo .env
     echo.
@@ -73,64 +53,24 @@ if not exist .env (
     pause >nul
 )
 
-echo ✅ Configuración verificada
+echo ✅ Archivos verificados
 echo.
 
 :: Crear carpetas necesarias
 if not exist data mkdir data
 if not exist logs mkdir logs
 
-echo ✅ Carpetas de datos creadas
-echo.
-
-:: Instalar/actualizar dependencias
-echo 📦 Verificando e instalando dependencias...
-echo.
-
-:: Intentar diferentes métodos de instalación
-echo Intentando instalación con python -m pip...
-python -m pip install -r requirements.txt --quiet --disable-pip-version-check --user
-
-if %errorlevel% neq 0 (
-    echo.
-    echo Intentando sin --quiet...
-    python -m pip install -r requirements.txt --user
-    
-    if %errorlevel% neq 0 (
-        echo.
-        echo Intentando instalación básica...
-        python -m pip install -r requirements.txt
-        
-        if %errorlevel% neq 0 (
-            echo.
-            echo ❌ ERROR: No se pudieron instalar las dependencias automáticamente
-            echo.
-            echo 💡 SOLUCIÓN MANUAL:
-            echo 1. Abre una nueva ventana de PowerShell/CMD
-            echo 2. Navega a esta carpeta: cd "%~dp0"
-            echo 3. Ejecuta: python -m pip install -r requirements.txt
-            echo 4. Una vez instalado, vuelve a ejecutar este launcher
-            echo.
-            echo ℹ️  Presiona Enter para intentar continuar de todos modos...
-            pause >nul
-        )
-    )
-)
-
-echo ✅ Dependencias instaladas correctamente
-echo.
-
-:: Iniciar el dashboard local en el navegador (en segundo plano)
-echo 🌐 Preparando dashboard local...
+:: Abrir dashboard local
+echo 🌐 Abriendo dashboard local...
 if exist local_dashboard.html (
     start "" local_dashboard.html
     echo ✅ Dashboard abierto en el navegador
 ) else (
-    echo ⚠️  Dashboard local no encontrado, pero el bot funcionará normalmente
+    echo ⚠️  Dashboard local no encontrado
 )
 echo.
 
-:: Mostrar información de inicio
+:: Mostrar información
 echo ========================================================================
 echo                              INICIANDO BOT
 echo ========================================================================
@@ -142,12 +82,29 @@ echo 📝 Logs: Guardados en carpeta 'logs'
 echo.
 echo ℹ️  Para detener el bot presiona Ctrl+C
 echo ℹ️  Para configurar canales usa: /config_canales en Discord
-echo ℹ️  Para ver configuración usa: /ver_configuracion en Discord
 echo.
 echo ========================================================================
 echo.
 
-:: Iniciar el bot con manejo de errores
+:: Verificar dependencias básicas
+echo 🔍 Verificando dependencias...
+python -c "import nextcord" 2>nul
+if %errorlevel% neq 0 (
+    echo.
+    echo ❌ ERROR: nextcord no está instalado
+    echo.
+    echo 💡 SOLUCIÓN:
+    echo 1. Ejecuta: INSTALAR_DEPENDENCIAS.bat
+    echo 2. O manualmente: python -m pip install nextcord yt-dlp PyNaCl python-dotenv aiohttp PyJWT
+    echo.
+    pause
+    exit /b 1
+)
+
+echo ✅ Dependencias verificadas
+echo.
+
+:: Iniciar el bot
 :start_bot
 echo 🚀 Iniciando DaBot v2...
 echo.
@@ -162,9 +119,10 @@ if %errorlevel% neq 0 (
     echo ¿Qué quieres hacer?
     echo [1] Reiniciar el bot
     echo [2] Ver logs de error
-    echo [3] Salir
+    echo [3] Instalar dependencias
+    echo [4] Salir
     echo.
-    set /p choice=Elige una opción (1-3): 
+    set /p choice=Elige una opción (1-4): 
     
     if "%choice%"=="1" (
         echo.
@@ -188,6 +146,13 @@ if %errorlevel% neq 0 (
     )
     
     if "%choice%"=="3" (
+        echo.
+        echo 📦 Ejecutando instalador de dependencias...
+        call INSTALAR_DEPENDENCIAS.bat
+        goto start_bot
+    )
+    
+    if "%choice%"=="4" (
         goto end
     )
     
@@ -203,10 +168,5 @@ echo                          BOT DETENIDO
 echo ========================================================================
 echo.
 echo 👋 ¡Gracias por usar DaBot v2!
-echo.
-echo Si necesitas ayuda, revisa:
-echo - README.md para documentación
-echo - logs/ para logs de errores
-echo - data/ para archivos de configuración
 echo.
 pause

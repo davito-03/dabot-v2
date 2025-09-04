@@ -375,8 +375,7 @@ class ChannelSelectView(nextcord.ui.View):
         self.category = category
         self.channel_type = channel_type
 
-    @nextcord.ui.select(
-        cls=nextcord.ui.ChannelSelect,
+    @nextcord.ui.channel_select(
         channel_types=[ChannelType.text],
         placeholder="Selecciona un canal...",
         max_values=1

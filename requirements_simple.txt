@@ -1,0 +1,9 @@
+nextcord>=3.1.0
+yt-dlp
+PyNaCl
+ffmpeg-python
+python-dotenv
+requests>=2.32.2
+aiohttp
+PyJWT
+cryptography

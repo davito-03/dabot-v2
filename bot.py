@@ -68,7 +68,10 @@ class DiscordBot(commands.Bot):
         try:
             logger.info("Sincronizando slash commands...")
             synced = await self.sync_all_application_commands()
-            logger.info(f"✅ {len(synced)} slash commands sincronizados")
+            if synced:
+                logger.info(f"✅ {len(synced)} slash commands sincronizados")
+            else:
+                logger.info("✅ Slash commands sincronizados (sin count)")
         except Exception as e:
             logger.error(f"❌ Error sincronizando slash commands: {e}")
         
@@ -137,7 +140,6 @@ async def main():
         # Agregar módulos al bot con verificación individual
         modules = [
             ("Moderation", Moderation),
-            ("Entertainment", Entertainment),
             ("Music", Music),
             ("ScheduledTasks", ScheduledTasks),
             ("HelpCommands", HelpCommands),
@@ -145,9 +147,6 @@ async def main():
             ("AntiSpam", AntiSpam),
             ("LoggingSystem", LoggingSystem),
             ("Economy", Economy),
-            ("VoiceMaster", VoiceMaster),
-            ("TicketSystem", TicketSystem),
-            ("WebAPI", WebAPI)
         ]
         
         for name, module_class in modules:
@@ -164,6 +163,31 @@ async def main():
                 
             except Exception as e:
                 logger.error(f"❌ Error cargando {name}: {e}")
+                continue
+        
+        # Cargar módulos con funciones setup
+        setup_modules = [
+            ("Entertainment", "modules.entertainment"),
+            ("VoiceMaster", "modules.voicemaster"),
+            ("TicketSystem", "modules.ticket_system"),
+            ("WebAPI", "modules.web_api")
+        ]
+        
+        for name, module_path in setup_modules:
+            try:
+                logger.info(f"Intentando cargar {name} via setup...")
+                module = __import__(module_path, fromlist=['setup'])
+                cog_instance = module.setup(bot)
+                
+                if cog_instance is None:
+                    logger.error(f"❌ {name} setup devolvió None")
+                    continue
+                    
+                await bot.add_cog(cog_instance)
+                logger.info(f"✅ {name} cargado exitosamente via setup")
+                
+            except Exception as e:
+                logger.error(f"❌ Error cargando {name} via setup: {e}")
                 continue
         
         logger.info("Proceso de carga de módulos completado")

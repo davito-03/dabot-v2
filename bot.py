@@ -64,6 +64,14 @@ class DiscordBot(commands.Bot):
         logger.info(f'Bot ID: {self.user.id}')
         logger.info(f'Servidores conectados: {len(self.guilds)}')
         
+        # Sincronizar slash commands
+        try:
+            logger.info("Sincronizando slash commands...")
+            synced = await self.sync_all_application_commands()
+            logger.info(f"✅ {len(synced)} slash commands sincronizados")
+        except Exception as e:
+            logger.error(f"❌ Error sincronizando slash commands: {e}")
+        
         # Configurar actividad del bot
         activity = nextcord.Activity(
             type=nextcord.ActivityType.listening,

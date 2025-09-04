@@ -25,6 +25,8 @@ from modules.economy import Economy
 from modules.voicemaster import VoiceMaster
 from modules.ticket_system import TicketSystem
 from modules.web_api import WebAPI
+from modules.log_config import LogConfig
+from modules.level_system import LevelSystem
 
 # Cargar variables de entorno
 load_dotenv()
@@ -147,6 +149,8 @@ async def main():
             ("AntiSpam", AntiSpam),
             ("LoggingSystem", LoggingSystem),
             ("Economy", Economy),
+            ("LogConfig", LogConfig),
+            ("LevelSystem", LevelSystem),
         ]
         
         for name, module_class in modules:

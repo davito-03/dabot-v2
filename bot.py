@@ -127,18 +127,27 @@ async def main():
     
     try:
         # Agregar módulos al bot
-        await bot.add_cog(Moderation(bot))
-        await bot.add_cog(Entertainment(bot))
-        await bot.add_cog(Music(bot))
-        await bot.add_cog(ScheduledTasks(bot))
-        await bot.add_cog(HelpCommands(bot))
-        await bot.add_cog(Warnings(bot))
-        await bot.add_cog(AntiSpam(bot))
-        await bot.add_cog(LoggingSystem(bot))
-        await bot.add_cog(Economy(bot))
-        await bot.add_cog(VoiceMaster(bot))
-        await bot.add_cog(TicketSystem(bot))
-        await bot.add_cog(WebAPI(bot))
+        cogs = [
+            Moderation(bot),
+            Entertainment(bot),
+            Music(bot),
+            ScheduledTasks(bot),
+            HelpCommands(bot),
+            Warnings(bot),
+            AntiSpam(bot),
+            LoggingSystem(bot),
+            Economy(bot),
+            VoiceMaster(bot),
+            TicketSystem(bot),
+            WebAPI(bot)
+        ]
+        
+        for cog in cogs:
+            if cog is not None:
+                await bot.add_cog(cog)
+                logger.info(f"Cog {cog.__class__.__name__} cargado exitosamente")
+            else:
+                logger.warning(f"Cog es None, saltando...")
         
         logger.info("Todos los módulos cargados exitosamente")
         

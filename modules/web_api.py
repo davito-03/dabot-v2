@@ -3,6 +3,7 @@ api web para dashboard del bot
 por davito
 """
 
+import os
 import json
 import logging
 import asyncio
@@ -45,7 +46,9 @@ class WebAPI(commands.Cog):
         self.site = None
         self.config_file = "data/web_config.json"
         self.config = {}
-        self.jwt_secret = "tu_clave_secreta_jwt_muy_segura_davito_2024"  # cambiar en producción
+        
+        # obtener jwt secret de variables de entorno o usar default
+        self.jwt_secret = os.getenv('JWT_SECRET', 'tu_clave_secreta_jwt_muy_segura_davito_2024')
         
         # cargar configuración
         self.load_config()
@@ -53,7 +56,12 @@ class WebAPI(commands.Cog):
         # configurar rutas
         self.setup_routes()
         
-        # iniciar servidor
+        # iniciar servidor solo si el bot está listo
+        self.bot.loop.create_task(self.delayed_start())
+    
+    async def delayed_start(self):
+        """iniciar servidor después de que el bot esté listo"""
+        await self.bot.wait_until_ready()
         self.start_server.start()
     
     def load_config(self):

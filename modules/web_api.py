@@ -10,11 +10,30 @@ import aiohttp
 from aiohttp import web, ClientSession
 import jwt
 import datetime
+from datetime import timedelta
 from typing import Dict, List, Optional
 import nextcord
 from nextcord.ext import commands, tasks
 
 logger = logging.getLogger(__name__)
+
+def require_auth(func):
+    """decorador para requerir autenticación"""
+    async def wrapper(self, request):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return web.json_response({'error': 'token requerido'}, status=401)
+        
+        token = auth_header[7:]  # quitar "Bearer "
+        payload = self.verify_jwt_token(token)
+        
+        if not payload:
+            return web.json_response({'error': 'token inválido'}, status=401)
+        
+        request.user = payload
+        return await func(self, request)
+    
+    return wrapper
 
 class WebAPI(commands.Cog):
     """sistema de api web para dashboard"""
@@ -119,24 +138,6 @@ class WebAPI(commands.Cog):
             return None
         except jwt.InvalidTokenError:
             return None
-    
-    def require_auth(self, handler):
-        """decorador para requerir autenticación"""
-        async def wrapper(request):
-            auth_header = request.headers.get('Authorization')
-            if not auth_header or not auth_header.startswith('Bearer '):
-                return web.json_response({'error': 'token requerido'}, status=401)
-            
-            token = auth_header[7:]  # quitar "Bearer "
-            payload = self.verify_jwt_token(token)
-            
-            if not payload:
-                return web.json_response({'error': 'token inválido'}, status=401)
-            
-            request.user = payload
-            return await handler(request)
-        
-        return wrapper
     
     async def api_status(self, request):
         """estado de la api"""
@@ -420,6 +421,172 @@ class WebAPI(commands.Cog):
             
         except Exception as e:
             logger.error(f"error obteniendo ticket: {e}")
+            return web.json_response({'error': 'error interno'}, status=500)
+    
+    @require_auth
+    async def close_ticket_api(self, request):
+        """cerrar ticket via api"""
+        try:
+            ticket_id = request.match_info['ticket_id']
+            user_id = int(request.user['user_id'])
+            
+            # cargar tickets
+            tickets = await self.load_json('tickets.json')
+            
+            if ticket_id not in tickets:
+                return web.json_response({'error': 'ticket no encontrado'}, status=404)
+            
+            ticket = tickets[ticket_id]
+            
+            # verificar permisos (solo el usuario o staff pueden cerrar)
+            if ticket['user_id'] != user_id and not request.user.get('is_staff', False):
+                return web.json_response({'error': 'sin permisos'}, status=403)
+            
+            # marcar como cerrado
+            ticket['status'] = 'closed'
+            ticket['closed_at'] = datetime.now().isoformat()
+            ticket['closed_by'] = user_id
+            
+            # guardar
+            await self.save_json('tickets.json', tickets)
+            
+            return web.json_response({
+                'success': True,
+                'message': 'ticket cerrado correctamente'
+            })
+            
+        except Exception as e:
+            logger.error(f"error cerrando ticket: {e}")
+            return web.json_response({'error': 'error interno'}, status=500)
+    
+    @require_auth
+    async def assign_ticket_api(self, request):
+        """asignar ticket a staff via api"""
+        try:
+            ticket_id = request.match_info['ticket_id']
+            data = await request.json()
+            staff_id = data.get('staff_id')
+            
+            if not staff_id:
+                return web.json_response({'error': 'staff_id requerido'}, status=400)
+            
+            # cargar tickets
+            tickets = await self.load_json('tickets.json')
+            
+            if ticket_id not in tickets:
+                return web.json_response({'error': 'ticket no encontrado'}, status=404)
+            
+            # asignar staff
+            tickets[ticket_id]['assigned_to'] = staff_id
+            tickets[ticket_id]['assigned_at'] = datetime.now().isoformat()
+            
+            # guardar
+            await self.save_json('tickets.json', tickets)
+            
+            return web.json_response({
+                'success': True,
+                'message': 'ticket asignado correctamente'
+            })
+            
+        except Exception as e:
+            logger.error(f"error asignando ticket: {e}")
+            return web.json_response({'error': 'error interno'}, status=500)
+    
+    @require_auth
+    async def get_economy_stats(self, request):
+        """obtener estadísticas de economía del guild"""
+        try:
+            guild_id = int(request.match_info['guild_id'])
+            
+            # cargar economía
+            economy = await self.load_json('economy.json')
+            guild_economy = economy.get(str(guild_id), {})
+            
+            stats = {
+                'total_users': len(guild_economy),
+                'total_coins': sum(user.get('coins', 0) for user in guild_economy.values()),
+                'top_users': sorted(
+                    [{'user_id': uid, 'coins': data.get('coins', 0)} 
+                     for uid, data in guild_economy.items()],
+                    key=lambda x: x['coins'], reverse=True
+                )[:10]
+            }
+            
+            return web.json_response(stats)
+            
+        except Exception as e:
+            logger.error(f"error obteniendo stats economía: {e}")
+            return web.json_response({'error': 'error interno'}, status=500)
+    
+    @require_auth
+    async def get_warnings(self, request):
+        """obtener warnings del guild"""
+        try:
+            guild_id = int(request.match_info['guild_id'])
+            
+            # cargar warnings
+            warnings = await self.load_json('warnings.json')
+            guild_warnings = warnings.get(str(guild_id), {})
+            
+            warning_list = []
+            for user_id, user_warnings in guild_warnings.items():
+                for warning in user_warnings:
+                    warning_list.append({
+                        'user_id': user_id,
+                        'reason': warning.get('reason'),
+                        'moderator': warning.get('moderator'),
+                        'timestamp': warning.get('timestamp')
+                    })
+            
+            # ordenar por timestamp
+            warning_list.sort(key=lambda x: x['timestamp'], reverse=True)
+            
+            return web.json_response(warning_list)
+            
+        except Exception as e:
+            logger.error(f"error obteniendo warnings: {e}")
+            return web.json_response({'error': 'error interno'}, status=500)
+    
+    @require_auth
+    async def moderation_action(self, request):
+        """ejecutar acción de moderación"""
+        try:
+            guild_id = int(request.match_info['guild_id'])
+            data = await request.json()
+            
+            action = data.get('action')
+            target_id = data.get('target_id')
+            reason = data.get('reason', 'Sin razón especificada')
+            
+            if not action or not target_id:
+                return web.json_response({'error': 'action y target_id requeridos'}, status=400)
+            
+            guild = self.bot.get_guild(guild_id)
+            if not guild:
+                return web.json_response({'error': 'guild no encontrado'}, status=404)
+            
+            target = guild.get_member(int(target_id))
+            if not target:
+                return web.json_response({'error': 'usuario no encontrado'}, status=404)
+            
+            # ejecutar acción según el tipo
+            if action == 'kick':
+                await target.kick(reason=reason)
+            elif action == 'ban':
+                await target.ban(reason=reason)
+            elif action == 'timeout':
+                duration = data.get('duration', 3600)  # 1 hora por defecto
+                await target.edit(timeout=nextcord.utils.utcnow() + timedelta(seconds=duration))
+            else:
+                return web.json_response({'error': 'acción no válida'}, status=400)
+            
+            return web.json_response({
+                'success': True,
+                'message': f'acción {action} ejecutada correctamente'
+            })
+            
+        except Exception as e:
+            logger.error(f"error ejecutando acción de moderación: {e}")
             return web.json_response({'error': 'error interno'}, status=500)
     
     @tasks.loop(seconds=1, count=1)

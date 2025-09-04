@@ -1,0 +1,9 @@
+{
+  "port": 8080,
+  "host": "0.0.0.0",
+  "allowed_origins": [
+    "https://dashboard.davito.es",
+    "http://localhost:3000"
+  ],
+  "api_tokens": {}
+}

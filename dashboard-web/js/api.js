@@ -6,7 +6,7 @@
 class DaBotAPI {
     constructor() {
         // URL base de la API (bot en Render.com)
-        this.baseURL = 'https://dabot-3s3e.onrender.com/api'; // Cambia por tu URL de Render
+        this.baseURL = 'https://TU-APP.onrender.com/api'; // ← CAMBIAR POR TU URL DE RENDER
         this.authToken = null;
         this.isAuthenticated = false;
         

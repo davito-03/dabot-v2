@@ -553,4 +553,4 @@ class TicketSystem(commands.Cog):
 
 def setup(bot):
     """función para cargar el cog"""
-    bot.add_cog(TicketSystem(bot))
+    return TicketSystem(bot)

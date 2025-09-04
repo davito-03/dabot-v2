@@ -628,4 +628,4 @@ class WebAPI(commands.Cog):
 
 def setup(bot):
     """función para cargar el cog"""
-    bot.add_cog(WebAPI(bot))
+    return WebAPI(bot)

@@ -558,4 +558,4 @@ class VoiceMaster(commands.Cog):
 
 def setup(bot):
     """función para cargar el cog"""
-    bot.add_cog(VoiceMaster(bot))
+    return VoiceMaster(bot)

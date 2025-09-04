@@ -988,4 +988,4 @@ class Entertainment(commands.Cog):
 
 def setup(bot):
     """función para cargar el cog"""
-    bot.add_cog(Entertainment(bot))
+    return Entertainment(bot)

@@ -262,5 +262,30 @@ class ScheduledTasks(commands.Cog):
             await interaction.response.send_message("❌ No tienes permisos para usar este comando.", ephemeral=True)
             return
         
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.test_daily_message(ctx)
+        try:
+            if interaction.guild.id not in self.daily_channels:
+                await interaction.response.send_message("❌ No hay canal diario configurado. Usa `/setdaily` primero.", ephemeral=True)
+                return
+            
+            channel_id = self.daily_channels[interaction.guild.id]
+            channel = self.bot.get_channel(channel_id)
+            
+            if not channel:
+                await interaction.response.send_message("❌ El canal configurado no existe o no es accesible.", ephemeral=True)
+                return
+            
+            # Enviar mensaje de prueba
+            embed = nextcord.Embed(
+                title="🧪 Mensaje Diario de Prueba",
+                description="¡Este es un mensaje de prueba para verificar que todo funciona correctamente!",
+                color=nextcord.Color.blue()
+            )
+            embed.add_field(name="Solicitado por", value=interaction.user.mention, inline=True)
+            embed.set_footer(text="🤖 Mensaje de prueba")
+            
+            await channel.send(embed=embed)
+            await interaction.response.send_message(f"✅ Mensaje de prueba enviado a {channel.mention}")
+            
+        except Exception as e:
+            logger.error(f"Error en mensaje diario de prueba: {e}")
+            await interaction.response.send_message("❌ Error al enviar el mensaje de prueba.", ephemeral=True)

@@ -316,8 +316,13 @@ class HelpCommands(commands.Cog):
     @nextcord.slash_command(name="ping", description="Muestra la latencia del bot")
     async def slash_ping(self, interaction: nextcord.Interaction):
         """Comando slash para ping"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.ping(ctx)
+        latency = round(self.bot.latency * 1000)
+        embed = nextcord.Embed(
+            title="🏓 Pong!",
+            description=f"Latencia: {latency}ms",
+            color=nextcord.Color.green()
+        )
+        await interaction.response.send_message(embed=embed)
     
     @commands.command(name='info')
     async def server_info(self, ctx):
@@ -392,5 +397,66 @@ class HelpCommands(commands.Cog):
     @nextcord.slash_command(name="info", description="Muestra información del bot y del servidor")
     async def slash_info(self, interaction: nextcord.Interaction):
         """Comando slash para información"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.server_info(ctx)
+        try:
+            embed = nextcord.Embed(
+                title="🤖 Información del Bot",
+                description="DaBot v2 - Bot multipropósito para Discord",
+                color=nextcord.Color.blue()
+            )
+            
+            # Información del bot
+            embed.add_field(
+                name="📊 Estadísticas del Bot:",
+                value=(
+                    f"**Servidores:** {len(self.bot.guilds)}\n"
+                    f"**Usuarios:** {len(self.bot.users)}\n"
+                    f"**Comandos cargados:** {len(self.bot.commands)}\n"
+                    f"**Latencia:** {round(self.bot.latency * 1000)}ms"
+                ),
+                inline=True
+            )
+            
+            # Información del servidor actual
+            embed.add_field(
+                name="🏠 Información del Servidor:",
+                value=(
+                    f"**Nombre:** {interaction.guild.name}\n"
+                    f"**ID:** {interaction.guild.id}\n"
+                    f"**Miembros:** {interaction.guild.member_count}\n"
+                    f"**Creado:** {interaction.guild.created_at.strftime('%d/%m/%Y')}"
+                ),
+                inline=True
+            )
+            
+            # Información técnica
+            embed.add_field(
+                name="⚙️ Información Técnica:",
+                value=(
+                    f"**Lenguaje:** Python 3.13\n"
+                    f"**Librería:** nextcord 2.6.0\n"
+                    f"**Host:** Render.com\n"
+                    f"**Prefijo:** !"
+                ),
+                inline=True
+            )
+            
+            # Funcionalidades
+            embed.add_field(
+                name="🎯 Funcionalidades:",
+                value=(
+                    "🛡️ Moderación\n"
+                    "🎮 Entretenimiento\n"
+                    "🎵 Música\n"
+                    "⏰ Tareas automáticas"
+                ),
+                inline=True
+            )
+            
+            embed.set_thumbnail(url=self.bot.user.avatar.url if self.bot.user.avatar else None)
+            embed.set_footer(text="Desarrollado con ❤️ usando nextcord")
+            
+            await interaction.response.send_message(embed=embed)
+            
+        except Exception as e:
+            logger.error(f"Error en comando info: {e}")
+            await interaction.response.send_message("❌ Error al mostrar la información.", ephemeral=True)

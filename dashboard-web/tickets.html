@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets - Da Bot Dashboard</title>
+    <meta name="description" content="Sistema de tickets de Da Bot">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+</head>
+<body class="dashboard-body">
+    <!-- Loading -->
+    <div id="tickets-loading" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando tickets...</p>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="assets/images/logo.png" alt="Da Bot" class="logo-img">
+                <div class="logo-text">
+                    <h1>Da Bot</h1>
+                    <span>Dashboard</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link" data-page="dashboard">
+                        <i data-feather="home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="tickets.html" class="nav-link" data-page="tickets">
+                        <i data-feather="message-circle"></i>
+                        <span>Tickets</span>
+                        <span class="badge" id="tickets-badge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="moderation.html" class="nav-link" data-page="moderation">
+                        <i data-feather="shield"></i>
+                        <span>Moderación</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="economy.html" class="nav-link" data-page="economy">
+                        <i data-feather="dollar-sign"></i>
+                        <span>Economía</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="music.html" class="nav-link" data-page="music">
+                        <i data-feather="music"></i>
+                        <span>Música</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="voicemaster.html" class="nav-link" data-page="voicemaster">
+                        <i data-feather="mic"></i>
+                        <span>VoiceMaster</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="settings.html" class="nav-link" data-page="settings">
+                        <i data-feather="settings"></i>
+                        <span>Configuración</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info-sidebar">
+                <img id="user-avatar" src="" alt="Usuario" class="user-avatar">
+                <div class="user-details">
+                    <h4 id="user-name">Cargando...</h4>
+                    <p id="user-status">Conectado</p>
+                </div>
+            </div>
+            
+            <button id="logout-btn" class="btn btn-ghost btn-sm" data-tooltip="Cerrar sesión">
+                <i data-feather="log-out"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <i data-feather="menu"></i>
+                </button>
+                
+                <div class="breadcrumb">
+                    <a href="dashboard.html" class="breadcrumb-item">Dashboard</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item">Tickets</span>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <div class="guild-selector">
+                    <label for="guild-select">Servidor:</label>
+                    <select id="guild-select" class="form-select">
+                        <option value="">Seleccionar servidor...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button class="btn btn-ghost refresh-btn" data-tooltip="Actualizar">
+                    <i data-feather="refresh-cw"></i>
+                </button>
+                
+                <div class="bot-status">
+                    <div id="bot-status" class="status-indicator online">
+                        <i data-feather="circle"></i>
+                    </div>
+                    <span>Bot Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido de tickets -->
+        <div class="dashboard-content">
+            <!-- Error container -->
+            <div id="error-container" class="error-container"></div>
+
+            <!-- Estadísticas de tickets -->
+            <section class="ticket-stats">
+                <h2 class="section-title">Estadísticas de Tickets</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-feather="inbox"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-tickets">-</h3>
+                            <p>Total</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card status-open">
+                        <div class="stat-icon">
+                            <i data-feather="message-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="open-tickets">-</h3>
+                            <p>Abiertos</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card status-pending">
+                        <div class="stat-icon">
+                            <i data-feather="clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="pending-tickets">-</h3>
+                            <p>Pendientes</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card status-closed">
+                        <div class="stat-icon">
+                            <i data-feather="check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="closed-tickets">-</h3>
+                            <p>Cerrados</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-feather="user-x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="unassigned-tickets">-</h3>
+                            <p>Sin asignar</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filtros y búsqueda -->
+            <section class="ticket-controls">
+                <div class="controls-left">
+                    <div class="filter-group" data-filter-group="status">
+                        <label>Estado:</label>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="status" data-value="all">Todos</button>
+                            <button class="filter-btn" data-filter="status" data-value="open">Abiertos</button>
+                            <button class="filter-btn" data-filter="status" data-value="pending">Pendientes</button>
+                            <button class="filter-btn" data-filter="status" data-value="closed">Cerrados</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-group" data-filter-group="priority">
+                        <label>Prioridad:</label>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="priority" data-value="all">Todas</button>
+                            <button class="filter-btn" data-filter="priority" data-value="urgent">Urgente</button>
+                            <button class="filter-btn" data-filter="priority" data-value="high">Alta</button>
+                            <button class="filter-btn" data-filter="priority" data-value="medium">Media</button>
+                            <button class="filter-btn" data-filter="priority" data-value="low">Baja</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-group" data-filter-group="assigned">
+                        <label>Asignación:</label>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="assigned" data-value="all">Todos</button>
+                            <button class="filter-btn" data-filter="assigned" data-value="assigned">Asignados</button>
+                            <button class="filter-btn" data-filter="assigned" data-value="unassigned">Sin asignar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls-right">
+                    <div class="search-box">
+                        <i data-feather="search"></i>
+                        <input type="text" id="ticket-search" placeholder="Buscar tickets..." class="form-input">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Layout de tickets -->
+            <div class="tickets-layout">
+                <!-- Lista de tickets -->
+                <div class="tickets-panel">
+                    <div class="panel-header">
+                        <h3>Tickets</h3>
+                        <div class="panel-actions">
+                            <select class="form-select" id="sort-select">
+                                <option value="newest">Más recientes</option>
+                                <option value="oldest">Más antiguos</option>
+                                <option value="priority">Por prioridad</option>
+                                <option value="status">Por estado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="tickets-container" class="tickets-list">
+                        <!-- Mensaje por defecto -->
+                        <div class="no-guild">
+                            <i data-feather="server"></i>
+                            <h3>Selecciona un servidor</h3>
+                            <p>Elige un servidor para ver sus tickets.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles del ticket -->
+                <div class="ticket-details-panel">
+                    <div class="panel-header">
+                        <h3>Detalles del Ticket</h3>
+                        <div id="ticket-details-loading" class="loading-inline" style="display: none;">
+                            <div class="spinner-sm"></div>
+                        </div>
+                    </div>
+
+                    <div id="ticket-details" class="ticket-details-content">
+                        <div class="no-selection">
+                            <i data-feather="message-circle"></i>
+                            <h3>Selecciona un ticket</h3>
+                            <p>Haz clic en un ticket de la lista para ver sus detalles.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de asignación -->
+    <div id="assign-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Asignar Ticket</h3>
+                    <button class="modal-close">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+
+                <form id="assign-form" class="modal-body">
+                    <div class="form-group">
+                        <label for="staff-select">Seleccionar Staff:</label>
+                        <select id="staff-select" class="form-select" required>
+                            <option value="">Seleccionar...</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="assign-note">Nota (opcional):</label>
+                        <textarea id="assign-note" class="form-textarea" placeholder="Razón de la asignación..."></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Asignar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/tickets.js"></script>
+    
+    <script>
+        // Inicializar iconos
+        feather.replace();
+
+        // Toggle sidebar en móvil
+        document.getElementById('sidebar-toggle').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('mobile-open');
+        });
+
+        // Cerrar sidebar al hacer click fuera en móvil
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.sidebar');
+            const toggle = document.getElementById('sidebar-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !toggle.contains(e.target)) {
+                sidebar.classList.remove('mobile-open');
+            }
+        });
+
+        // Manejar modal de asignación
+        const assignModal = document.getElementById('assign-modal');
+        const assignForm = document.getElementById('assign-form');
+
+        // Mostrar modal
+        function showAssignModal(ticketId) {
+            assignForm.dataset.ticketId = ticketId;
+            assignModal.style.display = 'flex';
+            
+            // Cargar staff disponible
+            loadAvailableStaff();
+        }
+
+        // Cerrar modal
+        function closeAssignModal() {
+            assignModal.style.display = 'none';
+            assignForm.reset();
+            delete assignForm.dataset.ticketId;
+        }
+
+        // Event listeners del modal
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', closeAssignModal);
+        });
+
+        assignModal.addEventListener('click', (e) => {
+            if (e.target === assignModal) {
+                closeAssignModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && assignModal.style.display === 'flex') {
+                closeAssignModal();
+            }
+        });
+
+        // Cargar staff disponible
+        async function loadAvailableStaff() {
+            const staffSelect = document.getElementById('staff-select');
+            staffSelect.innerHTML = '<option value="">Cargando...</option>';
+            
+            try {
+                // Simular carga de staff - reemplazar con llamada real a la API
+                const staff = [
+                    { id: '1', username: 'Admin1', discriminator: '0001' },
+                    { id: '2', username: 'Moderator1', discriminator: '0002' },
+                    { id: '3', username: 'Support1', discriminator: '0003' }
+                ];
+                
+                staffSelect.innerHTML = '<option value="">Seleccionar...</option>' +
+                    staff.map(member => 
+                        `<option value="${member.id}">${member.username}#${member.discriminator}</option>`
+                    ).join('');
+                    
+            } catch (error) {
+                console.error('Error cargando staff:', error);
+                staffSelect.innerHTML = '<option value="">Error cargando staff</option>';
+            }
+        }
+
+        // Manejar envío del formulario de asignación
+        assignForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const ticketId = assignForm.dataset.ticketId;
+            const staffId = document.getElementById('staff-select').value;
+            const note = document.getElementById('assign-note').value;
+            
+            if (!staffId) {
+                window.notifications.error('Error', 'Debes seleccionar un staff');
+                return;
+            }
+            
+            try {
+                // Asignar ticket
+                await window.daBotAPI.assignTicket(
+                    window.ticketManager.selectedGuild, 
+                    ticketId, 
+                    staffId
+                );
+                
+                // Cerrar modal
+                closeAssignModal();
+                
+                // Actualizar tickets
+                await window.ticketManager.refreshTickets();
+                
+                // Recargar detalles si es el ticket seleccionado
+                if (window.ticketManager.selectedTicket && 
+                    window.ticketManager.selectedTicket.id === ticketId) {
+                    await window.ticketManager.selectTicket(ticketId);
+                }
+                
+                window.notifications.success('Éxito', 'Ticket asignado correctamente');
+                
+            } catch (error) {
+                console.error('Error asignando ticket:', error);
+                window.notifications.error('Error', 'No se pudo asignar el ticket');
+            }
+        });
+
+        // Exponer función para uso del ticket manager
+        window.showAssignModal = showAssignModal;
+
+        // Actualizar iconos cuando cambie el DOM
+        const observer = new MutationObserver(() => {
+            feather.replace();
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Manejar redimensionado
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                document.querySelector('.sidebar').classList.remove('mobile-open');
+            }
+        });
+
+        // Auto-actualización de badges
+        setInterval(() => {
+            if (window.ticketManager && window.ticketManager.tickets) {
+                const openTickets = window.ticketManager.tickets.filter(t => t.status === 'open').length;
+                const badge = document.getElementById('tickets-badge');
+                if (badge) {
+                    badge.textContent = openTickets;
+                    badge.style.display = openTickets > 0 ? 'inline' : 'none';
+                }
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

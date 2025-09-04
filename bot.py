@@ -126,30 +126,39 @@ async def main():
     bot = DiscordBot()
     
     try:
-        # Agregar módulos al bot
-        cogs = [
-            Moderation(bot),
-            Entertainment(bot),
-            Music(bot),
-            ScheduledTasks(bot),
-            HelpCommands(bot),
-            Warnings(bot),
-            AntiSpam(bot),
-            LoggingSystem(bot),
-            Economy(bot),
-            VoiceMaster(bot),
-            TicketSystem(bot),
-            WebAPI(bot)
+        # Agregar módulos al bot con verificación individual
+        modules = [
+            ("Moderation", Moderation),
+            ("Entertainment", Entertainment),
+            ("Music", Music),
+            ("ScheduledTasks", ScheduledTasks),
+            ("HelpCommands", HelpCommands),
+            ("Warnings", Warnings),
+            ("AntiSpam", AntiSpam),
+            ("LoggingSystem", LoggingSystem),
+            ("Economy", Economy),
+            ("VoiceMaster", VoiceMaster),
+            ("TicketSystem", TicketSystem),
+            ("WebAPI", WebAPI)
         ]
         
-        for cog in cogs:
-            if cog is not None:
-                await bot.add_cog(cog)
-                logger.info(f"Cog {cog.__class__.__name__} cargado exitosamente")
-            else:
-                logger.warning(f"Cog es None, saltando...")
+        for name, module_class in modules:
+            try:
+                logger.info(f"Intentando cargar {name}...")
+                cog_instance = module_class(bot)
+                
+                if cog_instance is None:
+                    logger.error(f"❌ {name} devolvió None")
+                    continue
+                    
+                await bot.add_cog(cog_instance)
+                logger.info(f"✅ {name} cargado exitosamente")
+                
+            except Exception as e:
+                logger.error(f"❌ Error cargando {name}: {e}")
+                continue
         
-        logger.info("Todos los módulos cargados exitosamente")
+        logger.info("Proceso de carga de módulos completado")
         
         # Ejecutar el bot
         await bot.start(token)

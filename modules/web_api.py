@@ -56,8 +56,13 @@ class WebAPI(commands.Cog):
         # configurar rutas
         self.setup_routes()
         
-        # iniciar servidor solo si el bot está listo
-        self.bot.loop.create_task(self.delayed_start())
+        # NO iniciar servidor aquí, dejarlo para cuando el bot esté listo
+    
+    @commands.Cog.listener()
+    async def on_ready(self):
+        """iniciar servidor web cuando el bot esté listo"""
+        if not self.start_server.is_running():
+            self.start_server.start()
     
     async def delayed_start(self):
         """iniciar servidor después de que el bot esté listo"""

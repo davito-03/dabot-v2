@@ -77,8 +77,8 @@ class WebAPI(commands.Cog):
         except FileNotFoundError:
             self.config = {
                 "port": 8080,
-                "host": "0.0.0.0",
-                "allowed_origins": ["https://dashboard.davito.es", "http://localhost:3000"],
+                "host": "127.0.0.1",
+                "allowed_origins": ["http://localhost:3000", "http://127.0.0.1:3000", "file://"],
                 "api_tokens": {}
             }
             self.save_config()

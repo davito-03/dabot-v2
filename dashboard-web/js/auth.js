@@ -7,8 +7,8 @@ class DiscordAuth {
     constructor() {
         // Configuración de Discord OAuth2
         this.clientId = '1413169797759238244'; // Tu Discord Application ID
-        this.redirectUri = 'https://davito.es/dabot/auth';
-        this.scope = 'identify guilds';
+    this.redirectUri = 'https://davito.es/dabot/auth.html';
+    this.scope = 'identify guilds';
         
         // URLs
         this.discordAuthUrl = 'https://discord.com/api/oauth2/authorize';
@@ -81,9 +81,10 @@ class DiscordAuth {
         const params = new URLSearchParams({
             client_id: this.clientId,
             redirect_uri: this.redirectUri,
-            response_type: 'code',
+            response_type: 'token', // implicit grant for frontend-only
             scope: this.scope,
-            state: this.generateState()
+            state: this.generateState(),
+            prompt: 'consent'
         });
         
         return `${this.discordAuthUrl}?${params.toString()}`;
@@ -119,10 +120,13 @@ class DiscordAuth {
      * Manejar callback de Discord OAuth2
      */
     async handleAuthCallback() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state = urlParams.get('state');
-        const error = urlParams.get('error');
+    // Support both implicit grant (#access_token) and code flow (?code)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const code = urlParams.get('code');
+    const state = urlParams.get('state') || hashParams.get('state');
+    const error = urlParams.get('error') || hashParams.get('error');
+    const accessTokenFromHash = hashParams.get('access_token');
 
         if (error) {
             console.error('Error de autenticación:', error);
@@ -130,6 +134,31 @@ class DiscordAuth {
             return;
         }
 
+        // Implicit grant: access_token is in the URL hash
+        if (accessTokenFromHash && state) {
+            if (!this.verifyState(state)) {
+                console.error('Estado de autenticación inválido');
+                this.showError('Error de seguridad en la autenticación');
+                return;
+            }
+
+            try {
+                this.accessToken = accessTokenFromHash;
+                localStorage.setItem('discord_access_token', this.accessToken);
+                await this.fetchUserInfo();
+                await this.authenticateWithBot();
+
+                // Limpiar el hash y redirigir al dashboard
+                history.replaceState(null, '', window.location.pathname);
+                window.location.href = '/dabot/dashboard.html';
+            } catch (e) {
+                console.error('Error en autenticación (implicit):', e);
+                this.showError('Error al completar la autenticación');
+            }
+            return;
+        }
+
+        // Authorization code flow (not used now but kept for compatibility)
         if (code && state) {
             if (!this.verifyState(state)) {
                 console.error('Estado de autenticación inválido');
@@ -158,7 +187,7 @@ class DiscordAuth {
     async exchangeCodeForToken(code) {
         const data = {
             client_id: this.clientId,
-            client_secret: 'TU_CLIENT_SECRET', // Esto debería estar en el backend
+            client_secret: 'TU_CLIENT_SECRET', // NOT USED on frontend; keep for backend reference
             grant_type: 'authorization_code',
             code: code,
             redirect_uri: this.redirectUri

@@ -3,72 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Da Bot - Dashboard de Discord</title>
-    <meta name="description" content="Dashboard web oficial de Da Bot - El bot multipropósito más completo para Discord">
-    <meta name="keywords" content="discord bot, moderación, música, entretenimiento, dashboard">
+    <title>DaBot v2 – Dashboard Local</title>
+    <meta name="description" content="Controla tu bot de Discord desde un panel web local y offline.">
     <meta name="author" content="Davito">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/images/logo.png">
-    
-    <!-- CSS -->
+    <!-- CSS Offline -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/offline.css">
     
-    <!-- Fuentes -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fuentes locales CSS -->
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    </style>
     
     <!-- Iconos -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
 </head>
 <body>
-    <!-- Loading inicial -->
-    <div id="initial-loading" class="loading-overlay">
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Cargando Da Bot...</p>
-        </div>
-    </div>
-
+    <div id="star-background"></div>
     <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="header-content">
                 <!-- Logo -->
                 <div class="logo">
-                    <img src="assets/images/logo.png" alt="Da Bot" class="logo-img">
+                    <img src="/media/favicon-32x32.png" alt="Dabot" class="logo-img">
                     <div class="logo-text">
-                        <h1>Da Bot</h1>
+                        <h1>Dabot</h1>
                         <span>Dashboard</span>
                     </div>
                 </div>
 
-                <!-- Navegación -->
+                <!-- Navegación minimal -->
                 <nav class="nav">
                     <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="#home" class="nav-link active" data-page="home">
-                                <i data-feather="home"></i>
-                                Inicio
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#features" class="nav-link" data-page="features">
-                                <i data-feather="zap"></i>
-                                Características
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#docs" class="nav-link" data-page="docs">
-                                <i data-feather="book"></i>
-                                Documentación
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#support" class="nav-link" data-page="support">
-                                <i data-feather="help-circle"></i>
-                                Soporte
-                            </a>
-                        </li>
+                        <li class="nav-item"><a href="/" class="nav-link">Inicio</a></li>
+                        <li class="nav-item"><a href="/laboratorio.html" class="nav-link">Laboratorio</a></li>
+                        <li class="nav-item"><a href="https://discord.com/oauth2/authorize?client_id=1413169797759238244&permissions=8&integration_type=0&scope=bot" target="_blank" class="nav-link">Añadir Bot</a></li>
                     </ul>
                 </nav>
 
@@ -92,280 +63,41 @@
 
     <!-- Contenido principal -->
     <main class="main">
-        <!-- Hero Section -->
         <section class="hero" id="home">
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-text">
                         <h1 class="hero-title">
-                            El bot de Discord más 
-                            <span class="gradient-text">completo</span>
+                            Dashboard para tu bot de Discord
                         </h1>
-                        
                         <p class="hero-description">
-                            Da Bot ofrece moderación avanzada, entretenimiento, música, economía con minijuegos, 
-                            sistema de tickets, VoiceMaster y mucho más. Todo controlable desde este dashboard web.
+                            Accede con Discord para gestionar tu bot: configuración, tickets, moderación y más.
                         </p>
-
-                        <div class="hero-stats">
-                            <div class="stat">
-                                <span class="stat-number" id="total-servers">1,250+</span>
-                                <span class="stat-label">Servidores</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-number" id="total-users">45,000+</span>
-                                <span class="stat-label">Usuarios</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-number" id="commands-executed">2.5M+</span>
-                                <span class="stat-label">Comandos ejecutados</span>
-                            </div>
-                        </div>
-
                         <div class="hero-actions">
                             <button id="get-started" class="btn btn-primary btn-large">
                                 <i data-feather="play"></i>
-                                Comenzar
+                                Entrar con Discord
                             </button>
-                            
-                            <a href="https://discord.com/oauth2/authorize?client_id=1413169797759238244&permissions=8&scope=bot%20applications.commands" 
-                               target="_blank" class="btn btn-secondary btn-large">
-                                <i data-feather="plus"></i>
-                                Añadir a Discord
+                            <a href="https://discord.com/oauth2/authorize?client_id=1413169797759238244&permissions=8&integration_type=0&scope=bot" target="_blank" class="btn btn-secondary btn-large">
+                                Añadir Bot
                             </a>
                         </div>
                     </div>
-
                     <div class="hero-visual">
-                        <div class="dashboard-preview">
-                            <img src="assets/images/dashboard-preview.png" alt="Vista previa del dashboard" class="preview-image">
-                            <div class="preview-overlay">
-                                <div class="preview-stats">
-                                    <div class="preview-stat">
-                                        <div class="stat-icon online"></div>
-                                        <span>Bot Online</span>
-                                    </div>
-                                    <div class="preview-stat">
-                                        <div class="stat-icon"></div>
-                                        <span>12 Tickets Abiertos</span>
-                                    </div>
-                                    <div class="preview-stat">
-                                        <div class="stat-icon"></div>
-                                        <span>3,450 Créditos</span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="dashboard-preview" style="background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 16px;">
+                            <img src="assets/images/dashboard-preview.png" alt="Vista previa del dashboard" class="preview-image" loading="lazy">
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Características -->
-        <section class="features" id="features">
+        <section class="features" id="features" style="padding-top: 2rem;">
             <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Características Principales</h2>
-                    <p class="section-description">
-                        Todo lo que necesitas para administrar tu servidor de Discord de manera profesional
-                    </p>
-                </div>
-
                 <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i data-feather="shield"></i>
-                        </div>
-                        <h3>Moderación Avanzada</h3>
-                        <p>Sistema completo de warnings, bans temporales, anti-spam, anti-raids y logs detallados.</p>
-                        <ul class="feature-list">
-                            <li>Sistema de warnings con niveles</li>
-                            <li>Auto-moderación inteligente</li>
-                            <li>Logs completos de todas las acciones</li>
-                            <li>Filtros de palabras personalizables</li>
-                        </ul>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i data-feather="music"></i>
-                        </div>
-                        <h3>Reproductor de Música</h3>
-                        <p>Reproduce música de YouTube, SoundCloud y más con controles avanzados y colas ilimitadas.</p>
-                        <ul class="feature-list">
-                            <li>Soporte para múltiples plataformas</li>
-                            <li>Cola de reproducción infinita</li>
-                            <li>Controles de volumen y ecualizador</li>
-                            <li>Búsqueda inteligente de música</li>
-                        </ul>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i data-feather="dollar-sign"></i>
-                        </div>
-                        <h3>Sistema de Economía</h3>
-                        <p>Economía completa con créditos "davitos", minijuegos, apuestas y tienda virtual.</p>
-                        <ul class="feature-list">
-                            <li>Moneda virtual "davitos"</li>
-                            <li>Minijuegos y casino</li>
-                            <li>Sistema de trabajo y recompensas</li>
-                            <li>Leaderboards globales</li>
-                        </ul>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i data-feather="message-circle"></i>
-                        </div>
-                        <h3>Sistema de Tickets</h3>
-                        <p>Soporte profesional con tickets categorizados, asignación de staff y dashboard web.</p>
-                        <ul class="feature-list">
-                            <li>Tickets categorizados</li>
-                            <li>Asignación automática de staff</li>
-                            <li>Gestión desde dashboard web</li>
-                            <li>Transcripciones automáticas</li>
-                        </ul>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i data-feather="mic"></i>
-                        </div>
-                        <h3>VoiceMaster</h3>
-                        <p>Crea y gestiona canales de voz temporales con controles personalizables para cada usuario.</p>
-                        <ul class="feature-list">
-                            <li>Canales temporales automáticos</li>
-                            <li>Controles por owner del canal</li>
-                            <li>Personalización completa</li>
-                            <li>Interface con botones</li>
-                        </ul>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i data-feather="zap"></i>
-                        </div>
-                        <h3>Entretenimiento</h3>
-                        <p>Comandos divertidos, memes, chistes (incluyendo contenido adulto) y juegos interactivos.</p>
-                        <ul class="feature-list">
-                            <li>Chistes y memes variados</li>
-                            <li>Juegos interactivos</li>
-                            <li>Comandos de diversión</li>
-                            <li>Contenido personalizable por server</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dashboard Preview -->
-        <section class="dashboard-showcase">
-            <div class="container">
-                <div class="showcase-content">
-                    <div class="showcase-text">
-                        <h2>Dashboard Web Profesional</h2>
-                        <p>
-                            Controla todos los aspectos de tu bot desde una interfaz web moderna y fácil de usar. 
-                            Gestiona configuraciones, ve estadísticas en tiempo real y administra tickets sin salir del navegador.
-                        </p>
-                        
-                        <div class="showcase-features">
-                            <div class="showcase-feature">
-                                <i data-feather="monitor"></i>
-                                <span>Interface moderna y responsive</span>
-                            </div>
-                            <div class="showcase-feature">
-                                <i data-feather="activity"></i>
-                                <span>Estadísticas en tiempo real</span>
-                            </div>
-                            <div class="showcase-feature">
-                                <i data-feather="settings"></i>
-                                <span>Configuración completa del bot</span>
-                            </div>
-                            <div class="showcase-feature">
-                                <i data-feather="users"></i>
-                                <span>Gestión de múltiples servidores</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="showcase-image">
-                        <img src="assets/images/dashboard-full.png" alt="Dashboard completo" class="dashboard-image">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Testimonios -->
-        <section class="testimonials">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
-                    <p class="section-description">Miles de servidores confían en Da Bot</p>
-                </div>
-
-                <div class="testimonials-grid">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <p>"Da Bot ha transformado completamente la gestión de nuestro servidor. El sistema de moderación es increíble y el dashboard web facilita mucho el trabajo."</p>
-                        </div>
-                        <div class="testimonial-author">
-                            <img src="assets/images/user1.png" alt="Usuario 1" class="author-avatar">
-                            <div class="author-info">
-                                <h4>Alex García</h4>
-                                <span>Admin de GamersES</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <p>"El sistema de economía con los davitos es genial. Los miembros están súper activos y los minijuegos añaden mucha diversión al servidor."</p>
-                        </div>
-                        <div class="testimonial-author">
-                            <img src="assets/images/user2.png" alt="Usuario 2" class="author-avatar">
-                            <div class="author-info">
-                                <h4>María López</h4>
-                                <span>Owner de CommunityHub</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <p>"VoiceMaster es una característica única. Nuestros usuarios pueden crear sus propios canales temporales y personalizarlos como quieran."</p>
-                        </div>
-                        <div class="testimonial-author">
-                            <img src="assets/images/user3.png" alt="Usuario 3" class="author-avatar">
-                            <div class="author-info">
-                                <h4>Carlos Ruiz</h4>
-                                <span>Moderador de TechLovers</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- CTA Section -->
-        <section class="cta">
-            <div class="container">
-                <div class="cta-content">
-                    <h2>¿Listo para mejorar tu servidor?</h2>
-                    <p>Únete a miles de servidores que ya utilizan Da Bot para una experiencia Discord superior</p>
-                    
-                    <div class="cta-actions">
-                        <button id="cta-get-started" class="btn btn-primary btn-large">
-                            <i data-feather="rocket"></i>
-                            Comenzar Ahora
-                        </button>
-                        
-                        <a href="https://discord.gg/dabot" target="_blank" class="btn btn-secondary btn-large">
-                            <i data-feather="message-square"></i>
-                            Servidor de Soporte
-                        </a>
-                    </div>
+                    <div class="feature-card"><div class="feature-icon">🛡️</div><h3>Moderación</h3><p>Warnings y registros básicos.</p></div>
+                    <div class="feature-card"><div class="feature-icon">🎫</div><h3>Tickets</h3><p>Gestión simple de soporte.</p></div>
+                    <div class="feature-card"><div class="feature-icon">🎵</div><h3>Música</h3><p>Estado del reproductor (si está activo).</p></div>
                 </div>
             </div>
         </section>
@@ -377,8 +109,8 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="footer-logo">
-                        <img src="assets/images/logo.png" alt="Da Bot" class="logo-img">
-                        <h3>Da Bot</h3>
+                        <img src="/media/favicon-32x32.png" alt="Dabot" class="logo-img">
+                        <h3>Dabot</h3>
                     </div>
                     <p>El bot multipropósito más completo para Discord. Desarrollado con ❤️ por Davito.</p>
                 </div>
@@ -387,7 +119,7 @@
                     <h4>Enlaces</h4>
                     <ul class="footer-links">
                         <li><a href="dashboard.html">Dashboard</a></li>
-                        <li><a href="https://discord.com/oauth2/authorize?client_id=1413169797759238244&permissions=8&scope=bot%20applications.commands" target="_blank">Añadir Bot</a></li>
+                        <li><a href="https://discord.com/oauth2/authorize?client_id=1413169797759238244&permissions=8&integration_type=0&scope=bot" target="_blank">Añadir Bot</a></li>
                         <li><a href="https://discord.gg/dabot" target="_blank">Soporte</a></li>
                         <li><a href="#docs">Documentación</a></li>
                     </ul>
@@ -415,7 +147,7 @@
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2024 Da Bot. Todos los derechos reservados.</p>
+                <p>&copy; 2024 Dabot. Todos los derechos reservados.</p>
                 <div class="footer-social">
                     <a href="https://discord.gg/dabot" target="_blank" class="social-link" data-tooltip="Discord">
                         <i data-feather="message-square"></i>
@@ -434,7 +166,13 @@
     <!-- Error Display -->
     <div id="error-container" class="error-container"></div>
 
-    <!-- Scripts -->
+        <!-- Scripts -->
+        <script type="module">
+            import { initStars } from '/assets/js/stars.js';
+            import music from '/assets/js/music.js';
+            initStars();
+            music.init();
+        </script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/api.js"></script>
@@ -444,16 +182,7 @@
         // Inicializar iconos de Feather
         feather.replace();
         
-        // Manejar loading inicial
-        window.addEventListener('load', () => {
-            const loading = document.getElementById('initial-loading');
-            setTimeout(() => {
-                loading.style.opacity = '0';
-                setTimeout(() => {
-                    loading.style.display = 'none';
-                }, 300);
-            }, 1000);
-        });
+    // sin overlay de carga
 
         // Manejar menú móvil
         document.getElementById('mobile-menu-btn').addEventListener('click', () => {
@@ -461,17 +190,7 @@
             nav.classList.toggle('mobile-open');
         });
 
-        // Scroll suave para enlaces internos
-        document.addEventListener('click', (e) => {
-            const link = e.target.closest('a[href^="#"]');
-            if (link) {
-                e.preventDefault();
-                const target = document.querySelector(link.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            }
-        });
+    // Navegación mínima
 
         // Efectos de scroll
         window.addEventListener('scroll', () => {
@@ -483,53 +202,11 @@
             }
         });
 
-        // Animaciones de aparición
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+    // Animaciones ligeras: no necesarias
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-in');
-                }
-            });
-        }, observerOptions);
+    // El CTA principal es el botón Entrar con Discord
 
-        // Observar elementos para animar
-        document.querySelectorAll('.feature-card, .testimonial-card, .hero-visual').forEach(el => {
-            observer.observe(el);
-        });
-
-        // Botón CTA adicional
-        document.getElementById('cta-get-started').addEventListener('click', () => {
-            if (window.discordAuth && window.discordAuth.checkAuth()) {
-                window.location.href = '/dabot/dashboard.html';
-            } else {
-                window.discordAuth.login();
-            }
-        });
-
-        // Actualizar estadísticas del hero
-        async function updateHeroStats() {
-            try {
-                const stats = await window.daBotAPI.getBotStats();
-                if (stats) {
-                    document.getElementById('total-servers').textContent = 
-                        window.DaBotUtils.formatNumber(stats.guild_count) + '+';
-                    document.getElementById('total-users').textContent = 
-                        window.DaBotUtils.formatNumber(stats.user_count) + '+';
-                    document.getElementById('commands-executed').textContent = 
-                        window.DaBotUtils.formatNumber(stats.total_commands) + '+';
-                }
-            } catch (error) {
-                console.log('No se pudieron cargar las estadísticas del bot');
-            }
-        }
-
-        // Cargar estadísticas al cargar la página
-        setTimeout(updateHeroStats, 2000);
+    // Sin estadísticas falsas
     </script>
 </body>
 </html>

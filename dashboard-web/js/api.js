@@ -1,12 +1,12 @@
 /**
  * Cliente API para Da Bot
- * Comunicación con el bot en Render.com
+ * Comunicación con el bot en Local
  */
 
 class DaBotAPI {
     constructor() {
-        // URL base de la API (bot en Render.com)
-        this.baseURL = 'https://dabot-v2.onrender.com/api';
+        // URL base de la API (bot en Local)
+        this.baseURL = 'http://localhost:8080/api';
         this.authToken = null;
         this.isAuthenticated = false;
         

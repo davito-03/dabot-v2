@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Da Bot</title>
-    <meta name="description" content="Dashboard de control de Da Bot">
+    <title>Dashboard - Dabot (Offline)</title>
+    <meta name="description" content="Dashboard de control de Da Bot - Modo Offline">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/images/logo.png">
-    
-    <!-- CSS -->
+    <!-- CSS Local -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     
-    <!-- Fuentes -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Iconos -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.css">
+    <!-- Fuentes locales simuladas con CSS -->
+    <style>
+        @import url('data:text/css;charset=utf-8,body{font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;}');
+    </style>
 </head>
 <body class="dashboard-body">
+    <div id="star-background"></div>
     <!-- Loading -->
     <div id="loading" class="loading-overlay">
         <div class="loading-spinner">
@@ -32,9 +29,9 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="logo">
-                <img src="assets/images/logo.png" alt="Da Bot" class="logo-img">
+                <img src="/media/favicon-32x32.png" alt="Dabot" class="logo-img">
                 <div class="logo-text">
-                    <h1>Da Bot</h1>
+                    <h1>Dabot</h1>
                     <span>Dashboard</span>
                 </div>
             </div>
@@ -362,7 +359,13 @@
     </main>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+        <script type="module">
+            import { initStars } from '/assets/js/stars.js';
+            import music from '/assets/js/music.js';
+            initStars();
+            music.init();
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>

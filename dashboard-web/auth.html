@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autenticando…</title>
+  <link rel="icon" type="image/png" href="/media/favicon-32x32.png">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;color:#fff}
+    .card{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);padding:24px;border-radius:12px;font-family:var(--font-secondary)}
+  </style>
+</head>
+<body>
+  <div id="star-background"></div>
+  <div class="card">
+    <h1 style="font-family: var(--font-primary); margin-bottom:8px;">Conectando con Discord…</h1>
+    <p>Un momento por favor.</p>
+  </div>
+  <script type="module">
+    import { initStars } from '/assets/js/stars.js';
+    import music from '/assets/js/music.js';
+    initStars();
+    music.init();
+  </script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

@@ -174,17 +174,35 @@ class LevelSystem(commands.Cog):
             await self.handle_level_up(message, old_level, new_level)
     
     async def handle_level_up(self, message, old_level: int, new_level: int):
-        """manejar subida de nivel"""
+        """manejar subida de nivel con integración al sistema de canales"""
         guild_config = self.get_guild_config(message.guild.id)
         
-        # enviar mensaje de level up
-        channel_id = guild_config.get("level_up_channel")
-        channel = message.channel
+        # obtener canal usando el sistema de configuración de canales
+        target_channel = message.channel  # canal por defecto
         
-        if channel_id:
-            level_channel = message.guild.get_channel(channel_id)
-            if level_channel:
-                channel = level_channel
+        try:
+            # intentar obtener el canal desde channel_config primero
+            channel_config_cog = self.bot.get_cog('ChannelConfig')
+            if channel_config_cog:
+                configured_channel = channel_config_cog.get_channel(
+                    message.guild.id, 
+                    'notifications', 
+                    'level_up'
+                )
+                if configured_channel:
+                    target_channel = configured_channel
+            
+            # si no hay channel_config o no está configurado, usar el canal del level_system
+            if target_channel == message.channel:
+                channel_id = guild_config.get("level_up_channel")
+                if channel_id:
+                    level_channel = message.guild.get_channel(channel_id)
+                    if level_channel:
+                        target_channel = level_channel
+                        
+        except Exception as e:
+            logger.error(f"Error obteniendo canal para level up: {e}")
+            # usar canal por defecto
         
         embed = nextcord.Embed(
             title="🎉 ¡nivel aumentado!",
@@ -204,7 +222,7 @@ class LevelSystem(commands.Cog):
         embed.set_thumbnail(url=message.author.display_avatar.url)
         
         try:
-            await channel.send(embed=embed)
+            await target_channel.send(embed=embed)
         except:
             pass  # ignorar errores de permisos
         

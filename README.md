@@ -1,13 +1,29 @@
-# DaBot v2 - Bot Multipropósito para Discord
+# DaBot v2 - Bot Multipropósito para Discord (Modo Local)
 
 ## 🤖 Descripción
-DaBot v2 es un bot multipropósito para Discord desarrollado con nextcord que incluye funcionalidades de moderación, entretenimiento, música y tareas automatizadas.
+DaBot v2 es un bot multipropósito para Discord desarrollado con nextcord que incluye funcionalidades de moderación, entretenimiento, música, dashboard web local y tareas automatizadas.
+
+## 🚀 Inicio Rápido Local
+
+### Instalación y Configuración
+1. **Instalar dependencias:** `pip install -r requirements.txt`
+2. **Configurar token:** Edita `.env` con tu token de Discord
+3. **Iniciar bot:** Ejecuta `start_local.bat` o `python bot.py`
+4. **Dashboard:** Abre `local_dashboard.html` en tu navegador
+
+### Acceso Local
+- **Dashboard Web:** `http://localhost:8080`
+- **API:** `http://localhost:8080/api`
+- **Archivos:** Todo se guarda localmente en JSON
 
 ## ✨ Funcionalidades
 
 ### 🛡️ Moderación
 - **Ban/Kick de usuarios** con confirmación interactiva
+- **Sistema de warnings** con persistencia local
 - **Limpieza de mensajes** (hasta 100 mensajes)
+- **Anti-spam y anti-raids** configurables
+- **Configuración de logs** por tipo de evento
 - **Sistema de confirmación** con botones para todas las acciones
 - **Notificaciones por DM** a usuarios afectados
 - **Verificación de permisos** y jerarquía de roles

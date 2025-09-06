@@ -361,3 +361,7 @@ class Warnings(commands.Cog):
         except Exception as e:
             logger.error(f"error en top avisos: {e}")
             await ctx.send("❌ error al obtener estadísticas.")
+
+def setup(bot):
+    """Función setup para cargar el cog"""
+    return Warnings(bot)

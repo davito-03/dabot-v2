@@ -1,0 +1,573 @@
+#      ██████╗   █████╗  ██████╗   ██████╗  ████████╗    ██╗   ██╗ ██████╗ 
+#      ██╔══██╗ ██╔══██╗ ██╔══██╗ ██╔═══██╗ ╚══██╔══╝    ██║   ██║ ╚════██╗
+#      ██║  ██║ ███████║ ██████╔╝ ██║   ██║    ██║       ██║   ██║  █████╔╝
+#      ██║  ██║ ██╔══██║ ██╔══██╗ ██║   ██║    ██║       ╚██╗ ██╔╝ ██╔═══╝ 
+#      ██████╔╝ ██║  ██║ ██████╔╝ ╚██████╔╝    ██║        ╚████╔╝  ███████╗
+#      ╚═════╝  ╚═╝  ╚═╝ ╚═════╝   ╚═════╝     ╚═╝         ╚═══╝   ╚══════╝
+
+#   🤖 Archivo de configuración para DABOT V2 - El bot más completo de Discord
+#   📚 Documentación completa: https://github.com/davito-03/dabot-v2
+#   💬 Soporte: Discord de davito
+#   
+#   💡 CONSEJOS:
+#   - Para listas, usa este formato: ['id1', 'id2', 'id3']
+#   - IDs van siempre entre comillas simples
+#   - true/false en minúsculas sin comillas
+#   - Niveles: 0=@everyone, 50=Moderador, 80=Admin, 100=Owner
+
+# ================================================================================
+# 🌍 CONFIGURACIÓN GENERAL
+# ================================================================================
+
+general:
+  language: 'es-ES'              # Idioma del bot: es-ES, en-US, fr-FR, etc.
+  prefix: '!'                    # Prefijo para comandos de texto (además de slash commands)
+  timezone: 'Europe/Madrid'      # Zona horaria para logs y eventos
+  status: 'online'               # Estado del bot: online, idle, dnd, invisible
+  activity: 'Moderando {guilds} servidores'  # Actividad del bot, {guilds} = número de servidores
+
+# ================================================================================
+# 👑 SISTEMA DE PERMISOS Y AUTORIZACIÓN
+# ================================================================================
+
+permissions:
+  # Niveles de autorización por usuario (ID de Discord)
+  users:
+    '600041740124160011': 100    # davito (Owner)
+    # Añade más usuarios aquí con su nivel correspondiente
+  
+  # Niveles de autorización por rol (ID del rol)
+  roles:
+    '1340802095049085048': 80    # Admin
+    '1340584631287681055': 50    # Moderador
+    '1340567121419173958': 0     # @everyone
+  
+  # Configuración de comandos y sus niveles mínimos requeridos
+  commands:
+    # === COMANDOS GENERALES ===
+    help: 0
+    ping: 0
+    info: 0
+    server: 0
+    avatar: 0
+    
+    # === COMANDOS DE DIVERSIÓN ===
+    gato: 0
+    perro: 0
+    zorro: 0
+    pato: 0
+    michi: 0
+    abrazar: 0
+    besar: 0
+    abofetear: 0
+    interact: 0
+    
+    # === MÚSICA ===
+    play: 0
+    skip: 0
+    stop: 50
+    queue: 0
+    volume: 50
+    disconnect: 50
+    
+    # === MODERACIÓN ===
+    avisar: 50
+    avisos: 50
+    quitar-aviso: 50
+    limpiar-avisos: 80
+    ban: 80
+    kick: 50
+    clear: 50
+    mute: 50
+    unmute: 50
+    timeout: 50
+    
+    # === NIVELES Y ECONOMÍA ===
+    nivel: 0
+    ranking: 0
+    balance: 0
+    work: 0
+    daily: 0
+    transfer: 0
+    shop: 0
+    
+    # === CONFIGURACIÓN ===
+    configurar-bienvenida: 80
+    canal-bienvenida: 80
+    autorole: 80
+    automod: 80
+    configurar-niveles: 80
+    vmpanel: 80
+
+# ================================================================================
+# 🛡️ SISTEMA DE MODERACIÓN AVANZADO
+# ================================================================================
+
+moderation:
+  # Configuración general
+  enabled: true
+  mute_role_id: ''               # ID del rol de mute (se creará automáticamente si está vacío)
+  use_native_timeout: true       # Usar timeout nativo de Discord cuando sea posible
+  dm_on_punishment: true         # Enviar DM al usuario cuando reciba una sanción
+  log_all_actions: true          # Registrar todas las acciones de moderación
+  
+  # Sistema de warnings/avisos
+  warnings:
+    max_warnings: 5              # Máximo de avisos antes de sanción automática
+    auto_punishments:            # Sanciones automáticas por número de avisos
+      3: 'timeout'               # 3 avisos = timeout de 1 hora
+      5: 'kick'                  # 5 avisos = kick
+      7: 'ban'                   # 7 avisos = ban
+    warning_decay:               # Los avisos se eliminan automáticamente
+      enabled: true
+      days: 30                   # Avisos se eliminan después de 30 días
+  
+  # Anti-Spam inteligente
+  antispam:
+    enabled: true
+    max_level: 50                # No aplicar a usuarios con nivel >= 50
+    ignored_channels: []         # Canales donde no aplicar antispam
+    ignored_roles: []            # Roles inmunes al antispam
+    delete_messages: true        # Eliminar mensajes de spam
+    
+    # Detección de flood (muchos mensajes rápidos)
+    flood:
+      enabled: true
+      max_messages: 5            # Máximo mensajes en el intervalo
+      interval: 10               # Intervalo en segundos
+      punishment: 'timeout'      # Castigo: warn, timeout, kick, ban
+      duration: 300              # Duración del castigo en segundos (5 min)
+    
+    # Detección de mensajes duplicados
+    duplicate_messages:
+      enabled: true
+      max_duplicates: 3          # Máximo mensajes iguales
+      interval: 60               # En 60 segundos
+      punishment: 'warn'
+    
+    # Detección de menciones masivas
+    mention_spam:
+      enabled: true
+      max_mentions: 4            # Máximo menciones por mensaje
+      punishment: 'timeout'
+      duration: 600              # 10 minutos
+    
+    # Filtro de CAPS (mayúsculas excesivas)
+    caps_filter:
+      enabled: true
+      threshold: 70              # % de mayúsculas para considerar spam
+      min_length: 5              # Longitud mínima del mensaje a evaluar
+      punishment: 'warn'
+    
+    # Filtro de emojis/emotes excesivos
+    emoji_spam:
+      enabled: true
+      max_emojis: 8              # Máximo emojis/emotes por mensaje
+      punishment: 'warn'
+  
+  # Sistema de apelaciones
+  appeals:
+    enabled: true
+    channel_id: ''               # Canal donde llegan las solicitudes de apelación
+    allowed_for_bans: true       # Permitir apelaciones para bans
+    allowed_for_warnings: true   # Permitir apelaciones para warnings
+    cooldown_hours: 24           # Horas entre apelaciones del mismo usuario
+    max_appeals_per_user: 3      # Máximo apelaciones por usuario
+    
+    # Anti-raid (detección de ataques coordinados)
+    raid_detection:
+      enabled: true
+      threshold: 10              # 10 mensajes iguales por diferentes usuarios
+      interval: 30               # En 30 segundos
+      lock_channel: true         # Bloquear canal temporalmente
+      ban_raiders: true          # Banear participantes del raid
+      lock_duration: 300         # Duración del bloqueo en segundos
+
+# ================================================================================
+# 🔒 SISTEMA DE FILTROS Y CENSURA
+# ================================================================================
+
+filters:
+  # Configuración general de filtros
+  enabled: true
+  max_level: 50                  # No aplicar a usuarios con nivel >= 50
+  send_dm: true                  # Enviar DM explicando la infracción
+  delete_message: true           # Eliminar mensaje infractor
+  ignored_channels: []           # Canales sin filtros
+  ignored_roles: []              # Roles inmunes a filtros
+  
+  # Filtro de enlaces
+  anti_links:
+    enabled: true
+    whitelist: [                 # Dominios permitidos
+      'youtube.com',
+      'youtu.be',
+      'discord.gg',
+      'github.com',
+      'wikipedia.org'
+    ]
+    punishment: 'warn'           # Castigo por enviar links no permitidos
+    allow_images: true           # Permitir enlaces de imágenes
+  
+  # Filtro anti-phishing
+  anti_phishing:
+    enabled: true
+    punishment: 'ban'            # Banear inmediatamente por phishing
+    log_attempts: true           # Registrar intentos de phishing
+  
+  # Filtro de palabras prohibidas
+  word_blacklist:
+    enabled: true
+    words: [                     # Lista de palabras prohibidas
+      # Palabras ofensivas
+      'idiota', 'imbecil', 'estupido',
+      # Insultos discriminatorios  
+      'negro de mierda', 'maricon', 'subnormal',
+      # Contenido sexual explícito
+      'porno', 'xxx', 'sexo explicito',
+      # Drogas y sustancias
+      'cocaina', 'heroina', 'marihuana venta',
+      # Amenazas
+      'te mato', 'te voy a matar', 'muere',
+      # Información personal
+      'numero de telefono', 'direccion real'
+    ]
+    punishment: 'warn'
+    severity_levels:             # Diferentes niveles de severidad
+      mild: ['idiota', 'tonto']  # Solo advertencia
+      severe: ['maricon', 'negro de mierda']  # Timeout
+      extreme: ['te mato', 'muere']  # Ban inmediato
+  
+  # Filtro de tokens/códigos
+  token_filter:
+    enabled: true
+    punishment: 'kick'           # Kick por compartir tokens
+    patterns: [                  # Patrones a detectar
+      'mfa\.[a-z0-9_-]{20,}',   # Tokens de Discord
+      'ndc-[a-z0-9]{32}',       # Tokens de aplicaciones
+    ]
+
+# ================================================================================
+# 🎫 SISTEMA DE TICKETS AVANZADO
+# ================================================================================
+
+tickets:
+  enabled: true
+  channel_id: ''                 # Canal donde aparece el panel de tickets
+  category_id: ''                # Categoría donde se crean los canales
+  staff_role_id: ''              # Rol que puede gestionar tickets
+  
+  # Configuración por categoría
+  categories:
+    soporte:
+      emoji: '🛠️'
+      description: 'Solicitar ayuda técnica'
+      priority: 'media'
+      auto_assign: true          # Asignar automáticamente a staff disponible
+    
+    reporte:
+      emoji: '⚠️'
+      description: 'Reportar usuario o problema'
+      priority: 'alta'
+      auto_assign: true
+      ping_staff: true           # Notificar inmediatamente al staff
+    
+    sugerencia:
+      emoji: '💡'
+      description: 'Proponer mejoras'
+      priority: 'baja'
+      auto_assign: false
+    
+    apelacion:
+      emoji: '⚖️'
+      description: 'Apelar sanción'
+      priority: 'alta'
+      auto_assign: true
+      restricted: true           # Solo usuarios sancionados
+    
+    otro:
+      emoji: '❓'
+      description: 'Otros temas'
+      priority: 'media'
+      auto_assign: false
+  
+  # Configuración de comportamiento
+  max_tickets_per_user: 3        # Máximo tickets abiertos por usuario
+  auto_close_inactive: true      # Cerrar tickets inactivos
+  inactive_hours: 72             # Horas sin actividad antes de cerrar
+  create_transcript: true        # Crear transcripción al cerrar
+  transcript_channel: ''         # Canal para guardar transcripciones
+
+# ================================================================================
+# 🎵 SISTEMA DE MÚSICA
+# ================================================================================
+
+music:
+  enabled: true
+  max_queue_size: 50             # Máximo canciones en cola
+  max_song_duration: 3600        # Máximo duración canción (segundos)
+  default_volume: 50             # Volumen por defecto (1-100)
+  auto_leave: true               # Salir automáticamente si no hay nadie
+  auto_leave_timeout: 300        # Tiempo antes de salir (segundos)
+  
+  # Configuración de permisos
+  dj_role: ''                    # Rol de DJ con permisos especiales
+  voice_channel_whitelist: []    # Solo estos canales pueden usar música
+  restricted_commands:           # Comandos que requieren rol DJ
+    - 'skip'
+    - 'stop'
+    - 'volume'
+    - 'disconnect'
+
+# ================================================================================
+# 👋 SISTEMA DE BIENVENIDAS Y DESPEDIDAS
+# ================================================================================
+
+welcome:
+  # Bienvenidas
+  welcome:
+    enabled: true
+    channel_id: ''               # Canal de bienvenidas
+    message: '¡Bienvenido {user} a **{server}**! 🎉\nAhora somos **{count}** miembros.'
+    embed: true                  # Usar embed bonito
+    create_card: true            # Crear tarjeta de bienvenida
+    
+    # Mensaje directo de bienvenida
+    dm:
+      enabled: false
+      message: '¡Hola {user}! Bienvenido a **{server}**. Lee las reglas y diviértete! 😊'
+  
+  # Despedidas
+  goodbye:
+    enabled: false
+    channel_id: ''               # Canal de despedidas
+    message: '{user} se fue del servidor. 😢\nAhora somos **{count}** miembros.'
+    embed: true
+  
+  # Auto-rol
+  autorole:
+    enabled: false
+    role_id: ''                  # Rol a asignar automáticamente
+    delay: 0                     # Retraso en segundos antes de asignar
+
+# ================================================================================
+# 📊 SISTEMA DE NIVELES Y EXPERIENCIA
+# ================================================================================
+
+levels:
+  enabled: true
+  
+  # Configuración de XP
+  xp:
+    per_message: [15, 25]        # XP aleatoria por mensaje [min, max]
+    cooldown: 60                 # Cooldown entre mensajes para XP (segundos)
+    voice_xp: [10, 20]           # XP por minuto en canal de voz
+    bonus_weekends: 1.5          # Multiplicador de XP los fines de semana
+  
+  # Mensajes de level up
+  levelup:
+    enabled: true
+    channel_id: ''               # Canal específico (vacío = canal actual)
+    message: '🎉 ¡{user} subió al **nivel {level}**!'
+    card: true                   # Crear tarjeta visual
+  
+  # Multiplicadores por rol
+  role_multipliers:
+    # 'rol_id': multiplicador
+    # '123456789': 2.0           # Este rol obtiene doble XP
+  
+  # Roles por nivel
+  level_roles:
+    # nivel: 'rol_id'
+    # 5: '123456789'             # Rol al llegar a nivel 5
+    # 10: '987654321'            # Rol al llegar a nivel 10
+  
+  # Canales sin XP
+  ignored_channels: []
+  
+  # Configuración de ranking
+  leaderboard:
+    page_size: 10                # Usuarios por página
+    update_interval: 300         # Actualizar caché cada 5 minutos
+
+# ================================================================================
+# 💰 SISTEMA DE ECONOMÍA
+# ================================================================================
+
+economy:
+  enabled: true
+  currency_name: 'DaCoins'       # Nombre de la moneda
+  currency_symbol: '🪙'          # Símbolo de la moneda
+  
+  # Trabajo diario
+  work:
+    enabled: true
+    cooldown: 14400              # 4 horas entre trabajos
+    min_reward: 100              # Mínimo dinero por trabajo
+    max_reward: 500              # Máximo dinero por trabajo
+    
+  # Bonificación diaria
+  daily:
+    enabled: true
+    reward: 1000                 # Dinero por daily
+    streak_bonus: 100            # Bonus por día consecutivo
+    max_streak_bonus: 1000       # Máximo bonus por racha
+  
+  # Sistema bancario
+  bank:
+    enabled: true
+    interest_rate: 0.01          # 1% de interés diario
+    max_balance: 1000000         # Saldo máximo
+    
+  # Tienda de roles
+  shop:
+    enabled: true
+    items:
+      # nombre: {precio: X, role_id: 'Y', description: 'Z'}
+      # 'VIP': {price: 10000, role_id: '123456789', description: 'Rol VIP exclusivo'}
+
+# ================================================================================
+# 🎤 VOICEMASTER (CANALES TEMPORALES)
+# ================================================================================
+
+voicemaster:
+  enabled: true
+  create_channel_id: ''          # Canal donde entrar para crear temporal
+  category_id: ''                # Categoría para canales temporales
+  
+  # Configuración de canales
+  default_name: 'Canal de {user}'  # Nombre por defecto
+  default_limit: 0               # Límite de usuarios (0 = ilimitado)
+  max_channels: 20               # Máximo canales temporales
+  
+  # Permisos del propietario
+  owner_permissions: [
+    'change_name',               # Cambiar nombre
+    'change_limit',              # Cambiar límite de usuarios
+    'kick_members',              # Expulsar miembros
+    'block_members',             # Bloquear/desbloquear miembros
+    'transfer_ownership'         # Transferir propiedad
+  ]
+
+# ================================================================================
+# 📝 SISTEMA DE LOGS Y AUDITORÍA
+# ================================================================================
+
+logging:
+  enabled: true
+  
+  # Configuración de canales de logs
+  channels:
+    moderation: ''               # Logs de moderación (bans, kicks, etc.)
+    messages: ''                 # Logs de mensajes (editar, eliminar)
+    voice: ''                    # Logs de canales de voz
+    members: ''                  # Logs de miembros (entrar, salir)
+    server: ''                   # Logs del servidor (roles, canales)
+    automod: ''                  # Logs de automod y filtros
+  
+  # Usuarios/roles/canales ignorados
+  ignored:
+    users: []                    # Usuarios a ignorar en logs
+    roles: ['1340581888930222237']  # Roles a ignorar (bots)
+    channels: []                 # Canales a ignorar
+  
+  # Configuración específica
+  include_bots: false            # Incluir acciones de bots
+  include_content: true          # Incluir contenido de mensajes eliminados
+  embed_logs: true               # Usar embeds bonitos para logs
+
+# ================================================================================
+# 🎮 COMANDOS DE DIVERSIÓN E INTERACCIONES
+# ================================================================================
+
+fun:
+  # Comandos de animales
+  animals:
+    enabled: true
+    cooldown: 5                  # Cooldown entre comandos (segundos)
+  
+  # Comandos de interacciones
+  interactions:
+    enabled: true
+    cooldown: 3                  # Cooldown entre interacciones
+    allow_self: false            # Permitir interacciones consigo mismo
+    
+    # APIs de respaldo si falla la principal
+    fallback_apis: [
+      'https://nekos.life/api/v2/img/',
+      'https://api.waifu.pics/sfw/'
+    ]
+  
+  # Comandos NSFW - Solo para canales marcados como NSFW
+  nsfw:
+    enabled: true
+    cooldown: 5                  # Cooldown entre comandos NSFW (segundos)
+    strict_mode: true            # Solo permitir en canales marcados como NSFW
+    api_url: 'https://api.waifu.pics/nsfw/'  # API para contenido NSFW
+
+# ================================================================================
+# 🌐 DASHBOARD WEB Y API
+# ================================================================================
+
+web:
+  enabled: true
+  port: 8080                     # Puerto del servidor web
+  host: 'localhost'              # Host del servidor
+  secret_key: 'tu_clave_secreta_aqui'  # Clave secreta para JWT
+  
+  # Configuración de la API
+  api:
+    enabled: true
+    rate_limit: 100              # Requests por minuto por IP
+    cors_origins: ['*']          # Orígenes permitidos para CORS
+    
+  # Dashboard
+  dashboard:
+    enabled: true
+    admin_users: ['600041740124160011']  # Usuarios que pueden acceder al dashboard
+    session_timeout: 3600        # Timeout de sesión en segundos
+
+# ================================================================================
+# 🔧 CONFIGURACIÓN AVANZADA
+# ================================================================================
+
+advanced:
+  # Base de datos
+  database:
+    type: 'json'                 # Tipo: json, sqlite, postgresql
+    backup_interval: 86400       # Backup cada 24 horas
+    max_backups: 7               # Mantener 7 backups
+  
+  # Rendimiento
+  performance:
+    command_cooldown: 2          # Cooldown global entre comandos
+    max_concurrent_requests: 50   # Máximo requests concurrentes
+    cache_size: 1000             # Tamaño del caché en memoria
+  
+  # Debugging
+  debug:
+    enabled: false               # Activar modo debug
+    log_level: 'INFO'            # Nivel de logs: DEBUG, INFO, WARNING, ERROR
+    save_errors: true            # Guardar errores en archivos
+    sync_commands: false         # Sincronizar slash commands (solo activar si es necesario)
+
+# ================================================================================
+# 🎯 CONFIGURACIÓN ESPECÍFICA DEL SERVIDOR
+# ================================================================================
+
+# Esta sección se puede personalizar para cada servidor específico
+server_specific:
+  # ID del servidor (se detecta automáticamente)
+  guild_id: ''
+  
+  # Configuraciones especiales para este servidor
+  special_features:
+    custom_commands: []          # Comandos personalizados
+    event_channels: []           # Canales para eventos especiales
+    partner_servers: []          # Servidores aliados
+  
+  # Horarios especiales
+  schedules:
+    maintenance: '02:00'         # Hora de mantenimiento diario
+    backups: '03:00'            # Hora de backups
+    statistics: '12:00'         # Actualización de estadísticas

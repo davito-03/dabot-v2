@@ -1,556 +1,396 @@
 """
-sistema de tickets con integración web
+sistema de tickets para soporte
 por davito
 """
 
 import json
 import logging
-import asyncio
-import aiohttp
-import datetime
-from typing import Dict, List, Optional
+import sqlite3
 import nextcord
 from nextcord.ext import commands
+from typing import Dict, Optional
+import os
+import asyncio
+import io
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-class TicketCreateView(nextcord.ui.View):
-    """vista para crear tickets"""
+class TicketDB:
+    """manejo de base de datos para tickets"""
     
-    def __init__(self, ticket_system):
-        super().__init__(timeout=None)
-        self.ticket_system = ticket_system
+    def __init__(self, db_path: str = "data/tickets.db"):
+        self.db_path = db_path
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        self.init_db()
     
-    @nextcord.ui.button(label="🎫 crear ticket", style=nextcord.ButtonStyle.primary, emoji="🎫")
-    async def create_ticket(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    def init_db(self):
+        """inicializar base de datos"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute('''
+                    CREATE TABLE IF NOT EXISTS tickets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        guild_id INTEGER NOT NULL,
+                        channel_id INTEGER NOT NULL,
+                        user_id INTEGER NOT NULL,
+                        reason TEXT,
+                        status TEXT DEFAULT 'open',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        closed_at TIMESTAMP
+                    )
+                ''')
+                
+                conn.execute('''
+                    CREATE TABLE IF NOT EXISTS ticket_config (
+                        guild_id INTEGER PRIMARY KEY,
+                        category_id INTEGER,
+                        support_role_id INTEGER,
+                        log_channel_id INTEGER
+                    )
+                ''')
+                conn.commit()
+        except Exception as e:
+            logger.error(f"error inicializando base de datos de tickets: {e}")
+    
+    def create_ticket(self, guild_id: int, channel_id: int, user_id: int, reason: str = None):
         """crear nuevo ticket"""
         try:
-            # verificar si ya tiene ticket abierto
-            existing_ticket = await self.ticket_system.get_user_active_ticket(interaction.user.id, interaction.guild.id)
-            if existing_ticket:
-                await interaction.response.send_message(
-                    f"❌ ya tienes un ticket abierto: <#{existing_ticket['channel_id']}>",
-                    ephemeral=True
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute(
+                    "INSERT INTO tickets (guild_id, channel_id, user_id, reason) VALUES (?, ?, ?, ?)",
+                    (guild_id, channel_id, user_id, reason)
                 )
-                return
-            
-            # crear modal para solicitar información
-            modal = TicketModal(self.ticket_system)
-            await interaction.response.send_modal(modal)
-            
+                conn.commit()
+                return conn.lastrowid
         except Exception as e:
             logger.error(f"error creando ticket: {e}")
-            await interaction.response.send_message("❌ error al crear ticket.", ephemeral=True)
+            return None
+    
+    def close_ticket(self, channel_id: int):
+        """cerrar ticket"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute(
+                    "UPDATE tickets SET status = 'closed', closed_at = CURRENT_TIMESTAMP WHERE channel_id = ?",
+                    (channel_id,)
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(f"error cerrando ticket: {e}")
+    
+    def get_ticket(self, channel_id: int):
+        """obtener información de ticket"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute(
+                    "SELECT * FROM tickets WHERE channel_id = ?",
+                    (channel_id,)
+                )
+                return cursor.fetchone()
+        except Exception as e:
+            logger.error(f"error obteniendo ticket: {e}")
+            return None
+    
+    def get_config(self, guild_id: int):
+        """obtener configuración del servidor"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute(
+                    "SELECT * FROM ticket_config WHERE guild_id = ?",
+                    (guild_id,)
+                )
+                return cursor.fetchone()
+        except Exception as e:
+            logger.error(f"error obteniendo configuración: {e}")
+            return None
+    
+    def set_config(self, guild_id: int, category_id: int = None, support_role_id: int = None, log_channel_id: int = None):
+        """configurar servidor"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute('''
+                    INSERT OR REPLACE INTO ticket_config 
+                    (guild_id, category_id, support_role_id, log_channel_id) 
+                    VALUES (?, ?, ?, ?)
+                ''', (guild_id, category_id, support_role_id, log_channel_id))
+                conn.commit()
+        except Exception as e:
+            logger.error(f"error configurando servidor: {e}")
+
+class TicketView(nextcord.ui.View):
+    """vista con botones para tickets"""
+    
+    def __init__(self, ticket_cog):
+        super().__init__(timeout=None)
+        self.ticket_cog = ticket_cog
+    
+    @nextcord.ui.button(label="🎫 crear ticket", style=nextcord.ButtonStyle.primary, custom_id="create_ticket")
+    async def create_ticket(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        """crear nuevo ticket"""
+        await self.ticket_cog.create_ticket_interaction(interaction)
 
 class TicketModal(nextcord.ui.Modal):
     """modal para crear ticket"""
     
-    def __init__(self, ticket_system):
-        super().__init__(title="crear nuevo ticket")
-        self.ticket_system = ticket_system
+    def __init__(self, ticket_cog):
+        super().__init__(title="crear ticket de soporte")
+        self.ticket_cog = ticket_cog
         
-        self.subject_input = nextcord.ui.TextInput(
-            label="asunto",
-            placeholder="describe brevemente tu problema...",
-            max_length=100,
-            required=True
-        )
-        self.add_item(self.subject_input)
-        
-        self.description_input = nextcord.ui.TextInput(
-            label="descripción detallada",
-            placeholder="explica tu problema con detalle...",
+        self.reason = nextcord.ui.TextInput(
+            label="motivo del ticket",
+            placeholder="describe tu problema o consulta...",
             style=nextcord.TextInputStyle.paragraph,
-            max_length=1000,
-            required=True
+            required=True,
+            max_length=1000
         )
-        self.add_item(self.description_input)
-        
-        self.priority_input = nextcord.ui.TextInput(
-            label="prioridad (baja/media/alta)",
-            placeholder="baja",
-            max_length=10,
-            required=False
-        )
-        self.add_item(self.priority_input)
+        self.add_item(self.reason)
     
     async def callback(self, interaction: nextcord.Interaction):
-        try:
-            subject = self.subject_input.value.strip()
-            description = self.description_input.value.strip()
-            priority = self.priority_input.value.strip().lower() or "baja"
-            
-            if priority not in ["baja", "media", "alta"]:
-                priority = "baja"
-            
-            # crear ticket
-            ticket_data = await self.ticket_system.create_ticket(
-                interaction.guild,
-                interaction.user,
-                subject,
-                description,
-                priority
-            )
-            
-            await interaction.response.send_message(
-                f"✅ ticket creado exitosamente: <#{ticket_data['channel_id']}>",
-                ephemeral=True
-            )
-            
-        except Exception as e:
-            logger.error(f"error en callback ticket modal: {e}")
-            await interaction.response.send_message("❌ error al crear ticket.", ephemeral=True)
+        """procesar creación de ticket"""
+        await self.ticket_cog.process_ticket_creation(interaction, self.reason.value)
 
 class TicketControlView(nextcord.ui.View):
-    """vista de control para tickets"""
+    """vista de control para tickets activos"""
     
-    def __init__(self, ticket_system, ticket_id: str):
+    def __init__(self, ticket_cog):
         super().__init__(timeout=None)
-        self.ticket_system = ticket_system
-        self.ticket_id = ticket_id
+        self.ticket_cog = ticket_cog
     
-    @nextcord.ui.button(label="🔒 cerrar", style=nextcord.ButtonStyle.danger)
+    @nextcord.ui.button(label="🔒 cerrar ticket", style=nextcord.ButtonStyle.danger, custom_id="close_ticket")
     async def close_ticket(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         """cerrar ticket"""
-        try:
-            # verificar permisos
-            if not (interaction.user.guild_permissions.manage_channels or 
-                   await self.ticket_system.is_ticket_owner(self.ticket_id, interaction.user.id)):
-                await interaction.response.send_message("❌ no tienes permisos para cerrar este ticket.", ephemeral=True)
-                return
-            
-            # confirmar cierre
-            confirm_view = ConfirmCloseView(self.ticket_system, self.ticket_id)
-            
-            embed = nextcord.Embed(
-                title="⚠️ confirmar cierre",
-                description="¿estás seguro de que quieres cerrar este ticket?",
-                color=nextcord.Color.orange()
-            )
-            
-            await interaction.response.send_message(embed=embed, view=confirm_view, ephemeral=True)
-            
-        except Exception as e:
-            logger.error(f"error cerrando ticket: {e}")
-            await interaction.response.send_message("❌ error al cerrar ticket.", ephemeral=True)
+        await self.ticket_cog.close_ticket_interaction(interaction)
     
-    @nextcord.ui.button(label="📊 estado", style=nextcord.ButtonStyle.secondary)
-    async def ticket_status(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """mostrar estado del ticket"""
-        try:
-            ticket_data = await self.ticket_system.get_ticket_data(self.ticket_id)
-            if not ticket_data:
-                await interaction.response.send_message("❌ ticket no encontrado.", ephemeral=True)
-                return
-            
-            embed = nextcord.Embed(
-                title="📊 información del ticket",
-                color=nextcord.Color.blue()
-            )
-            
-            embed.add_field(name="🆔 id", value=ticket_data['id'], inline=True)
-            embed.add_field(name="👤 usuario", value=f"<@{ticket_data['user_id']}>", inline=True)
-            embed.add_field(name="📋 asunto", value=ticket_data['subject'], inline=True)
-            embed.add_field(name="⚡ prioridad", value=ticket_data['priority'], inline=True)
-            embed.add_field(name="📅 creado", value=f"<t:{int(ticket_data['created_at'])}:R>", inline=True)
-            embed.add_field(name="🔗 web", value=f"[ver en dashboard]({self.ticket_system.get_web_url(ticket_data['id'])})", inline=True)
-            
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-            
-        except Exception as e:
-            logger.error(f"error mostrando estado ticket: {e}")
-            await interaction.response.send_message("❌ error al obtener estado.", ephemeral=True)
-    
-    @nextcord.ui.button(label="🏷️ asignar", style=nextcord.ButtonStyle.primary)
-    async def assign_ticket(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """asignar ticket a staff"""
-        try:
-            if not interaction.user.guild_permissions.manage_channels:
-                await interaction.response.send_message("❌ no tienes permisos para asignar tickets.", ephemeral=True)
-                return
-            
-            modal = AssignModal(self.ticket_system, self.ticket_id)
-            await interaction.response.send_modal(modal)
-            
-        except Exception as e:
-            logger.error(f"error asignando ticket: {e}")
-            await interaction.response.send_message("❌ error al asignar ticket.", ephemeral=True)
+    @nextcord.ui.button(label="📋 transcript", style=nextcord.ButtonStyle.secondary, custom_id="ticket_transcript")
+    async def transcript(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        """generar transcript"""
+        await self.ticket_cog.generate_transcript(interaction)
 
-class ConfirmCloseView(nextcord.ui.View):
-    """vista de confirmación para cerrar ticket"""
-    
-    def __init__(self, ticket_system, ticket_id: str):
-        super().__init__(timeout=30)
-        self.ticket_system = ticket_system
-        self.ticket_id = ticket_id
-    
-    @nextcord.ui.button(label="✅ sí, cerrar", style=nextcord.ButtonStyle.danger)
-    async def confirm_close(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """confirmar cierre del ticket"""
-        try:
-            await self.ticket_system.close_ticket(self.ticket_id, interaction.user.id, "cerrado por usuario")
-            await interaction.response.send_message("✅ ticket cerrado exitosamente.", ephemeral=True)
-            
-        except Exception as e:
-            logger.error(f"error confirmando cierre: {e}")
-            await interaction.response.send_message("❌ error al cerrar ticket.", ephemeral=True)
-    
-    @nextcord.ui.button(label="❌ cancelar", style=nextcord.ButtonStyle.secondary)
-    async def cancel_close(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """cancelar cierre"""
-        await interaction.response.send_message("❌ cierre cancelado.", ephemeral=True)
-
-class AssignModal(nextcord.ui.Modal):
-    """modal para asignar ticket"""
-    
-    def __init__(self, ticket_system, ticket_id: str):
-        super().__init__(title="asignar ticket")
-        self.ticket_system = ticket_system
-        self.ticket_id = ticket_id
-        
-        self.staff_input = nextcord.ui.TextInput(
-            label="miembro del staff",
-            placeholder="@usuario o id del usuario",
-            max_length=50,
-            required=True
-        )
-        self.add_item(self.staff_input)
-    
-    async def callback(self, interaction: nextcord.Interaction):
-        try:
-            staff_mention = self.staff_input.value.strip()
-            
-            # obtener usuario
-            if staff_mention.startswith('<@') and staff_mention.endswith('>'):
-                user_id = int(staff_mention[2:-1].replace('!', ''))
-            else:
-                user_id = int(staff_mention)
-            
-            staff_member = interaction.guild.get_member(user_id)
-            if not staff_member:
-                await interaction.response.send_message("❌ miembro no encontrado.", ephemeral=True)
-                return
-            
-            # asignar ticket
-            await self.ticket_system.assign_ticket(self.ticket_id, staff_member.id)
-            
-            await interaction.response.send_message(
-                f"✅ ticket asignado a {staff_member.mention}",
-                ephemeral=True
-            )
-            
-        except ValueError:
-            await interaction.response.send_message("❌ id de usuario inválido.", ephemeral=True)
-        except Exception as e:
-            logger.error(f"error asignando ticket: {e}")
-            await interaction.response.send_message("❌ error al asignar ticket.", ephemeral=True)
-
-class TicketSystem(commands.Cog):
-    """sistema de tickets con integración web"""
+class TicketManager(commands.Cog):
+    """sistema de tickets"""
     
     def __init__(self, bot):
         self.bot = bot
-        self.config_file = "data/tickets_config.json"
-        self.tickets_file = "data/tickets.json"
-        self.guild_configs: Dict[int, dict] = {}
-        self.tickets: Dict[str, dict] = {}
-        self.web_api_url = "https://dashboard.davito.es/api"  # tu url de api
-        self.web_dashboard_url = "https://dashboard.davito.es"
+        self.db = TicketDB()
+        self.ticket_channels = {}
         
-        # cargar datos
-        self.load_config()
-        self.load_tickets()
+        # agregar vistas persistentes
+        self.bot.add_view(TicketView(self))
+        self.bot.add_view(TicketControlView(self))
     
-    def load_config(self):
-        """cargar configuración"""
+    @nextcord.slash_command(name="ticket", description="comandos de tickets")
+    async def ticket_group(self, interaction: nextcord.Interaction):
+        pass
+    
+    @ticket_group.subcommand(name="setup", description="configurar sistema de tickets")
+    async def setup_tickets(self, interaction: nextcord.Interaction):
+        """configurar sistema de tickets"""
+        if not interaction.user.guild_permissions.manage_guild:
+            await interaction.response.send_message("❌ necesitas permisos de gestionar servidor.", ephemeral=True)
+            return
+        
+        await interaction.response.defer()
+        
         try:
-            with open(self.config_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                self.guild_configs = {int(k): v for k, v in data.items()}
-        except FileNotFoundError:
-            self.guild_configs = {}
-        except Exception as e:
-            logger.error(f"error cargando config tickets: {e}")
-            self.guild_configs = {}
-    
-    def save_config(self):
-        """guardar configuración"""
-        try:
-            import os
-            os.makedirs("data", exist_ok=True)
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                json.dump(self.guild_configs, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            logger.error(f"error guardando config tickets: {e}")
-    
-    def load_tickets(self):
-        """cargar tickets"""
-        try:
-            with open(self.tickets_file, 'r', encoding='utf-8') as f:
-                self.tickets = json.load(f)
-        except FileNotFoundError:
-            self.tickets = {}
-        except Exception as e:
-            logger.error(f"error cargando tickets: {e}")
-            self.tickets = {}
-    
-    def save_tickets(self):
-        """guardar tickets"""
-        try:
-            import os
-            os.makedirs("data", exist_ok=True)
-            with open(self.tickets_file, 'w', encoding='utf-8') as f:
-                json.dump(self.tickets, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            logger.error(f"error guardando tickets: {e}")
-    
-    def get_web_url(self, ticket_id: str) -> str:
-        """obtener url web del ticket"""
-        return f"{self.web_dashboard_url}/tickets/{ticket_id}"
-    
-    async def sync_to_web(self, ticket_data: dict):
-        """sincronizar ticket con la web"""
-        try:
-            async with aiohttp.ClientSession() as session:
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.bot.config.get('web_api_token', '')}"
-                }
-                
-                async with session.post(
-                    f"{self.web_api_url}/tickets",
-                    json=ticket_data,
-                    headers=headers
-                ) as response:
-                    if response.status == 200:
-                        logger.info(f"ticket {ticket_data['id']} sincronizado con web")
-                    else:
-                        logger.warning(f"error sincronizando ticket: {response.status}")
-                        
-        except Exception as e:
-            logger.error(f"error sincronizando con web: {e}")
-    
-    @commands.command(name='ticketsetup')
-    @commands.has_permissions(administrator=True)
-    async def setup_tickets(self, ctx, category: nextcord.CategoryChannel = None):
-        """
-        configurar sistema de tickets
-        uso: !ticketsetup [categoría]
-        """
-        try:
-            if not category:
-                await ctx.send("❌ debes especificar una categoría. uso: `!ticketsetup [categoría]`")
-                return
+            guild = interaction.guild
             
-            # configurar guild
-            self.guild_configs[ctx.guild.id] = {
-                'category_id': category.id,
-                'staff_role_id': None,
-                'log_channel_id': None,
-                'enabled': True
-            }
+            # crear categoría para tickets
+            category = await guild.create_category("🎫 tickets")
             
-            self.save_config()
+            # buscar o crear rol de soporte
+            support_role = nextcord.utils.get(guild.roles, name="soporte")
+            if not support_role:
+                support_role = await guild.create_role(name="soporte", color=nextcord.Color.blue())
             
-            # crear embed con botón
+            # buscar canal de logs
+            log_channel = nextcord.utils.get(guild.text_channels, name="ticket-logs")
+            if not log_channel:
+                log_channel = await guild.create_text_channel("ticket-logs", category=category)
+            
+            # guardar configuración
+            self.db.set_config(guild.id, category.id, support_role.id, log_channel.id)
+            
+            # crear panel de tickets
             embed = nextcord.Embed(
                 title="🎫 sistema de tickets",
-                description="haz clic en el botón de abajo para crear un nuevo ticket de soporte.",
+                description="haz clic en el botón para crear un ticket de soporte.",
                 color=nextcord.Color.blue()
             )
             embed.add_field(
-                name="📋 información",
-                value="• describe tu problema claramente\n• incluye toda la información relevante\n• sé paciente, te responderemos pronto",
+                name="📋 instrucciones",
+                value="• haz clic en '🎫 crear ticket'\n• describe tu problema\n• espera respuesta del staff",
                 inline=False
             )
-            embed.set_footer(text="sistema de tickets por davito")
             
-            view = TicketCreateView(self)
+            view = TicketView(self)
+            await interaction.followup.send(embed=embed, view=view)
             
-            await ctx.send(embed=embed, view=view)
-            
-            # mensaje de confirmación
-            config_embed = nextcord.Embed(
-                title="✅ sistema de tickets configurado",
-                description=f"categoría: {category.mention}",
-                color=nextcord.Color.green()
-            )
-            
-            await ctx.send(embed=config_embed)
-            logger.info(f"sistema de tickets configurado en {ctx.guild.name}")
+            logger.info(f"sistema de tickets configurado en {guild.name}")
             
         except Exception as e:
             logger.error(f"error configurando tickets: {e}")
-            await ctx.send("❌ error al configurar sistema de tickets.")
+            await interaction.followup.send("❌ error al configurar el sistema de tickets.")
     
-    async def create_ticket(self, guild, user, subject: str, description: str, priority: str = "baja"):
-        """crear nuevo ticket"""
+    async def create_ticket_interaction(self, interaction: nextcord.Interaction):
+        """manejar interacción de crear ticket"""
         try:
-            guild_config = self.guild_configs.get(guild.id)
-            if not guild_config or not guild_config.get('enabled'):
-                raise Exception("sistema de tickets no configurado")
+            # verificar si el usuario ya tiene un ticket abierto
+            guild = interaction.guild
+            user_tickets = [ch for ch in guild.text_channels if ch.name.startswith(f"ticket-{interaction.user.name.lower()}")]
             
-            # generar id único
-            ticket_id = f"ticket-{guild.id}-{user.id}-{int(datetime.datetime.now().timestamp())}"
+            if user_tickets:
+                await interaction.response.send_message("❌ ya tienes un ticket abierto.", ephemeral=True)
+                return
             
-            # obtener categoría
-            category = guild.get_channel(guild_config['category_id'])
-            if not category:
-                raise Exception("categoría de tickets no encontrada")
-            
-            # crear canal
-            channel_name = f"ticket-{user.display_name}".lower().replace(" ", "-")
-            channel = await guild.create_text_channel(
-                name=channel_name,
-                category=category,
-                reason=f"ticket creado por {user}"
-            )
-            
-            # configurar permisos
-            await channel.set_permissions(guild.default_role, read_messages=False)
-            await channel.set_permissions(user, read_messages=True, send_messages=True)
-            
-            # crear datos del ticket
-            ticket_data = {
-                'id': ticket_id,
-                'guild_id': guild.id,
-                'channel_id': channel.id,
-                'user_id': user.id,
-                'subject': subject,
-                'description': description,
-                'priority': priority,
-                'status': 'abierto',
-                'assigned_to': None,
-                'created_at': datetime.datetime.now().timestamp(),
-                'closed_at': None,
-                'closed_by': None,
-                'close_reason': None
-            }
-            
-            # guardar ticket
-            self.tickets[ticket_id] = ticket_data
-            self.save_tickets()
-            
-            # enviar mensaje inicial
-            embed = nextcord.Embed(
-                title="🎫 nuevo ticket",
-                description=f"**asunto:** {subject}",
-                color=nextcord.Color.blue()
-            )
-            embed.add_field(name="👤 usuario", value=user.mention, inline=True)
-            embed.add_field(name="⚡ prioridad", value=priority, inline=True)
-            embed.add_field(name="🆔 id", value=ticket_id, inline=True)
-            embed.add_field(name="📝 descripción", value=description, inline=False)
-            embed.add_field(name="🔗 dashboard", value=f"[ver en web]({self.get_web_url(ticket_id)})", inline=False)
-            
-            view = TicketControlView(self, ticket_id)
-            
-            await channel.send(f"¡hola {user.mention}! tu ticket ha sido creado.", embed=embed, view=view)
-            
-            # sincronizar con web
-            await self.sync_to_web(ticket_data)
-            
-            logger.info(f"ticket creado: {ticket_id} por {user}")
-            return ticket_data
+            # mostrar modal
+            modal = TicketModal(self)
+            await interaction.response.send_modal(modal)
             
         except Exception as e:
-            logger.error(f"error creando ticket: {e}")
-            raise
+            logger.error(f"error en interacción crear ticket: {e}")
+            await interaction.response.send_message("❌ error al crear ticket.", ephemeral=True)
     
-    async def close_ticket(self, ticket_id: str, closed_by_id: int, reason: str = "cerrado"):
+    async def process_ticket_creation(self, interaction: nextcord.Interaction, reason: str):
+        """procesar creación de ticket"""
+        try:
+            await interaction.response.defer(ephemeral=True)
+            
+            guild = interaction.guild
+            user = interaction.user
+            
+            # obtener configuración
+            config = self.db.get_config(guild.id)
+            if not config:
+                await interaction.followup.send("❌ sistema de tickets no configurado.", ephemeral=True)
+                return
+            
+            category_id, support_role_id, log_channel_id = config[1], config[2], config[3]
+            category = guild.get_channel(category_id)
+            support_role = guild.get_role(support_role_id)
+            
+            # crear canal de ticket
+            overwrites = {
+                guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
+                user: nextcord.PermissionOverwrite(read_messages=True, send_messages=True),
+                support_role: nextcord.PermissionOverwrite(read_messages=True, send_messages=True) if support_role else None
+            }
+            
+            # remover overwrites nulos
+            overwrites = {k: v for k, v in overwrites.items() if v is not None}
+            
+            channel_name = f"ticket-{user.name.lower()}"
+            ticket_channel = await guild.create_text_channel(
+                channel_name,
+                category=category,
+                overwrites=overwrites
+            )
+            
+            # guardar en base de datos
+            ticket_id = self.db.create_ticket(guild.id, ticket_channel.id, user.id, reason)
+            
+            # mensaje inicial
+            embed = nextcord.Embed(
+                title=f"🎫 ticket #{ticket_id}",
+                description=f"**usuario:** {user.mention}\n**motivo:** {reason}",
+                color=nextcord.Color.green()
+            )
+            embed.add_field(
+                name="📋 información",
+                value="• el staff responderá pronto\n• usa los botones para gestionar el ticket",
+                inline=False
+            )
+            
+            view = TicketControlView(self)
+            await ticket_channel.send(embed=embed, view=view)
+            await ticket_channel.send(f"{user.mention} {support_role.mention if support_role else ''}")
+            
+            await interaction.followup.send(f"✅ ticket creado: {ticket_channel.mention}", ephemeral=True)
+            
+            # log
+            if log_channel_id:
+                log_channel = guild.get_channel(log_channel_id)
+                if log_channel:
+                    log_embed = nextcord.Embed(
+                        title="🎫 nuevo ticket",
+                        description=f"**usuario:** {user.mention}\n**canal:** {ticket_channel.mention}\n**motivo:** {reason}",
+                        color=nextcord.Color.blue(),
+                        timestamp=datetime.utcnow()
+                    )
+                    await log_channel.send(embed=log_embed)
+            
+            logger.info(f"ticket creado por {user} en {guild.name}")
+            
+        except Exception as e:
+            logger.error(f"error procesando creación de ticket: {e}")
+            await interaction.followup.send("❌ error al crear el ticket.", ephemeral=True)
+    
+    async def close_ticket_interaction(self, interaction: nextcord.Interaction):
         """cerrar ticket"""
         try:
-            ticket_data = self.tickets.get(ticket_id)
-            if not ticket_data:
-                raise Exception("ticket no encontrado")
+            # verificar que es un canal de ticket
+            ticket_info = self.db.get_ticket(interaction.channel.id)
+            if not ticket_info:
+                await interaction.response.send_message("❌ este no es un canal de ticket.", ephemeral=True)
+                return
             
-            # actualizar datos
-            ticket_data['status'] = 'cerrado'
-            ticket_data['closed_at'] = datetime.datetime.now().timestamp()
-            ticket_data['closed_by'] = closed_by_id
-            ticket_data['close_reason'] = reason
+            # verificar permisos
+            if not (interaction.user.guild_permissions.manage_channels or 
+                   interaction.user.id == ticket_info[3]):  # owner del ticket
+                await interaction.response.send_message("❌ sin permisos para cerrar este ticket.", ephemeral=True)
+                return
             
-            # obtener canal
-            guild = self.bot.get_guild(ticket_data['guild_id'])
-            channel = guild.get_channel(ticket_data['channel_id'])
+            await interaction.response.defer()
             
-            if channel:
-                # mensaje de cierre
-                embed = nextcord.Embed(
-                    title="🔒 ticket cerrado",
-                    description=f"este ticket ha sido cerrado por <@{closed_by_id}>",
-                    color=nextcord.Color.red()
-                )
-                embed.add_field(name="motivo", value=reason, inline=False)
-                embed.add_field(name="cerrado en", value=f"<t:{int(ticket_data['closed_at'])}:f>", inline=False)
-                
-                await channel.send(embed=embed)
-                
-                # eliminar canal después de 5 segundos
-                await asyncio.sleep(5)
-                await channel.delete(reason="ticket cerrado")
+            # cerrar en base de datos
+            self.db.close_ticket(interaction.channel.id)
             
-            # guardar cambios
-            self.save_tickets()
+            # mensaje de cierre
+            embed = nextcord.Embed(
+                title="🔒 ticket cerrado",
+                description=f"ticket cerrado por {interaction.user.mention}",
+                color=nextcord.Color.red(),
+                timestamp=datetime.utcnow()
+            )
+            await interaction.followup.send(embed=embed)
             
-            # sincronizar con web
-            await self.sync_to_web(ticket_data)
+            # eliminar canal después de 10 segundos
+            await asyncio.sleep(10)
+            await interaction.channel.delete(reason="ticket cerrado")
             
-            logger.info(f"ticket cerrado: {ticket_id}")
+            logger.info(f"ticket cerrado por {interaction.user}")
             
         except Exception as e:
             logger.error(f"error cerrando ticket: {e}")
-            raise
+            await interaction.followup.send("❌ error al cerrar ticket.")
     
-    async def get_user_active_ticket(self, user_id: int, guild_id: int) -> Optional[dict]:
-        """obtener ticket activo de usuario"""
-        for ticket_data in self.tickets.values():
-            if (ticket_data['user_id'] == user_id and 
-                ticket_data['guild_id'] == guild_id and 
-                ticket_data['status'] == 'abierto'):
-                return ticket_data
-        return None
-    
-    async def get_ticket_data(self, ticket_id: str) -> Optional[dict]:
-        """obtener datos de ticket"""
-        return self.tickets.get(ticket_id)
-    
-    async def is_ticket_owner(self, ticket_id: str, user_id: int) -> bool:
-        """verificar si usuario es dueño del ticket"""
-        ticket_data = self.tickets.get(ticket_id)
-        return ticket_data and ticket_data['user_id'] == user_id
-    
-    async def assign_ticket(self, ticket_id: str, staff_id: int):
-        """asignar ticket a staff"""
+    async def generate_transcript(self, interaction: nextcord.Interaction):
+        """generar transcript del ticket"""
         try:
-            ticket_data = self.tickets.get(ticket_id)
-            if not ticket_data:
-                raise Exception("ticket no encontrado")
+            await interaction.response.defer(ephemeral=True)
             
-            ticket_data['assigned_to'] = staff_id
-            self.save_tickets()
+            channel = interaction.channel
+            messages = []
             
-            # enviar mensaje en canal
-            guild = self.bot.get_guild(ticket_data['guild_id'])
-            channel = guild.get_channel(ticket_data['channel_id'])
+            async for message in channel.history(limit=None, oldest_first=True):
+                timestamp = message.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                content = message.content if message.content else "[archivo/embed]"
+                messages.append(f"[{timestamp}] {message.author}: {content}")
             
-            if channel:
-                embed = nextcord.Embed(
-                    title="🏷️ ticket asignado",
-                    description=f"ticket asignado a <@{staff_id}>",
-                    color=nextcord.Color.green()
-                )
-                await channel.send(embed=embed)
+            transcript_content = "\n".join(messages)
             
-            # sincronizar con web
-            await self.sync_to_web(ticket_data)
+            # crear archivo
+            file = nextcord.File(
+                io.StringIO(transcript_content), 
+                filename=f"transcript-{channel.name}.txt"
+            )
             
-            logger.info(f"ticket {ticket_id} asignado a {staff_id}")
+            await interaction.followup.send("📋 transcript generado:", file=file, ephemeral=True)
             
         except Exception as e:
-            logger.error(f"error asignando ticket: {e}")
-            raise
+            logger.error(f"error generando transcript: {e}")
+            await interaction.followup.send("❌ error generando transcript.", ephemeral=True)
 
 def setup(bot):
     """función para cargar el cog"""
-    return TicketSystem(bot)
+    return TicketManager(bot)

@@ -556,6 +556,7 @@ class VoiceMaster(commands.Cog):
         except Exception as e:
             logger.error(f"error verificando canal vacío: {e}")
 
+# Función de setup del módulo
 def setup(bot):
     """función para cargar el cog"""
     return VoiceMaster(bot)

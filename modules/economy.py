@@ -723,3 +723,7 @@ class Economy(commands.Cog):
         except Exception as e:
             logger.error(f"error en pay: {e}")
             await ctx.send("❌ error al realizar el pago.")
+
+def setup(bot):
+    """Función setup para cargar el cog"""
+    return Economy(bot)

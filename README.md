@@ -1,236 +1,295 @@
-# DaBot v2 - Bot Multipropósito para Discord (Modo Local)
+# 🤖 DaBot v2 - Bot Multipropósito Definitivo
 
-## 🤖 Descripción
-DaBot v2 es un bot multipropósito para Discord desarrollado con nextcord que incluye funcionalidades de moderación, entretenimiento, música, dashboard web local y tareas automatizadas.
+¡El bot de Discord más completo y avanzado! DaBot v2 incluye todas las funcionalidades de MEE6, La Cabra 2.0, VoiceMaster, ProBot, Dyno y Disboard, ¡y mucho más!
 
-## 🚀 Inicio Rápido Local
+## 🌟 **Características Principales**
 
-### Instalación y Configuración
-1. **Instalar dependencias:** `pip install -r requirements.txt`
-2. **Configurar token:** Edita `.env` con tu token de Discord
-3. **Iniciar bot:** Ejecuta `start_local.bat` o `python bot.py`
-4. **Dashboard:** Abre `local_dashboard.html` en tu navegador
+### 🎵 **Sistema de Música Avanzado**
+- Reproducción desde YouTube con yt-dlp
+- Cola de reproducción inteligente
+- Control de volumen y salto de canciones
+- Comandos: `/play`, `/skip`, `/stop`, `/queue`, `/volume`, `/disconnect`
 
-### Acceso Local
-- **Dashboard Web:** `http://localhost:8080`
-- **API:** `http://localhost:8080/api`
-- **Archivos:** Todo se guarda localmente en JSON
+### 🎫 **Sistema de Tickets Avanzado**
+- **5 Categorías**: Soporte, Reporte, Sugerencia, Apelación, Otro
+- **3 Niveles de Prioridad**: Baja, Media, Alta
+- Panel interactivo con botones
+- Asignación de staff automática
+- Transcripciones de conversaciones
+- Dashboard web para gestión
 
-## ✨ Funcionalidades
+### 📊 **Sistema de Niveles y XP**
+- XP por mensajes con cooldown inteligente
+- Roles automáticos por nivel
+- Tarjetas de nivel personalizadas
+- Ranking del servidor
+- Multiplicadores por roles
+- Comandos: `/nivel`, `/ranking`, `/configurar-niveles`
 
-### 🛡️ Moderación
-- **Ban/Kick de usuarios** con confirmación interactiva
-- **Sistema de warnings** con persistencia local
-- **Limpieza de mensajes** (hasta 100 mensajes)
-- **Anti-spam y anti-raids** configurables
-- **Configuración de logs** por tipo de evento
-- **Sistema de confirmación** con botones para todas las acciones
-- **Notificaciones por DM** a usuarios afectados
-- **Verificación de permisos** y jerarquía de roles
+### 🛡️ **AutoMod Inteligente**
+- **Anti-Spam**: Detección de mensajes duplicados
+- **Anti-Links**: Bloqueo de enlaces no autorizados
+- **Anti-Invites**: Bloqueo de invitaciones de Discord
+- **Anti-Caps**: Control de mayúsculas excesivas
+- **Anti-Mentions**: Límite de menciones por mensaje
+- Configuración por servidor
+- Logs automáticos
 
-### 🎮 Entretenimiento
-- **Chistes aleatorios** con más de 15 chistes programados
-- **Bola mágica 8** con 25 respuestas diferentes
-- **Lanzamiento de moneda** virtual
-- **Dados personalizables** (2-100 caras)
+### ⚠️ **Sistema de Moderación**
+- Comando `/avisar` (en español) para warnings
+- `/avisos` para ver historial de usuario
+- `/quitar-aviso` para remover avisos específicos
+- `/limpiar-avisos` para limpiar historial
+- Ban, kick, timeout con confirmación
+- Limpieza de mensajes avanzada
 
-### 🎵 Música
-- **Reproducción desde YouTube** usando yt-dlp
-- **Sistema de cola** avanzado con múltiples canciones
-- **Control de volumen** (0-100%)
-- **Comandos de control** (play, skip, stop, queue)
-- **Búsqueda inteligente** por URL o texto
-- **Manejo de errores** robusto
+### 👋 **Sistema de Bienvenidas y Despedidas**
+- Tarjetas de bienvenida personalizadas
+- Mensajes configurables
+- AutoRole para nuevos miembros
+- DM de bienvenida opcional
+- Comandos: `/configurar-bienvenida`, `/canal-bienvenida`, `/autorole`
 
-### ⏰ Tareas Automatizadas
-- **Mensajes diarios** automáticos a las 8:00 AM
-- **Configuración por servidor** independiente
-- **Mensajes motivacionales** aleatorios
-- **Sistema de pruebas** para verificar funcionamiento
+### 🎮 **Interacciones y Diversión**
+- **Animales**: `/gato`, `/perro`, `/zorro`, `/pato`
+- **Interacciones**: `/abrazar`, `/besar`, `/abofetear`, `/acariciar`, `/acurrucar`, `/tocar`, `/morder`, `/bonk`
+- Menú interactivo con `/interact`
+- GIFs animados de waifu.pics
+- Textos aleatorios personalizados
 
-## 🚀 Comandos Disponibles
+### 🎤 **VoiceMaster Pro**
+- Canales de voz dinámicos
+- Control total del propietario
+- Límites de usuarios personalizables
+- Configuración avanzada
 
-### Comandos con Prefijo (!)
+### 💰 **Sistema de Economía**
+- Monedas y banco
+- Trabajos diarios
+- Tienda de roles
+- Apuestas y minijuegos
+- Transferencias entre usuarios
 
-#### Moderación (Requiere permisos de administrador)
-- `!ban @usuario [razón]` - Banea a un usuario
-- `!kick @usuario [razón]` - Expulsa a un usuario  
-- `!clear [cantidad]` - Elimina mensajes (máx. 100)
+### 📈 **Dashboard Web Completo**
+- **Panel Principal**: http://localhost:8080/dashboard-web/tickets-dashboard.html
+- **Gestión Avanzada**: http://localhost:8080/dashboard-web/management.html
+- Estadísticas en tiempo real
+- Gestión de tickets desde web
+- Configuración de canales y roles
+- Filtros y búsqueda avanzada
 
-#### Entretenimiento
-- `!joke` o `!chiste` - Chiste aleatorio
-- `!8ball [pregunta]` - Bola mágica 8
-- `!flip` o `!moneda` - Lanza moneda
-- `!dice [caras]` - Lanza dado
+### 📡 **API REST Completa**
+- Endpoints para todas las funcionalidades
+- Autenticación JWT
+- CORS configurado
+- Documentación automática
+- Base: http://localhost:8080/api/
 
-#### Música
-- `!play [URL/búsqueda]` - Reproduce música
-- `!skip` - Salta canción actual
-- `!stop` - Detiene música y limpia cola
-- `!queue` - Muestra cola de reproducción
-- `!volume [0-100]` - Ajusta volumen
-- `!disconnect` - Desconecta del canal
+## 🚀 **Instalación y Uso**
 
-#### Tareas Automáticas (Requiere permisos de administrador)
-- `!setdaily [#canal]` - Configura mensajes diarios
-- `!removedaily` - Desactiva mensajes diarios
-- `!dailystatus` - Estado de mensajes diarios
-- `!testdaily` - Prueba mensaje diario
-
-#### Generales
-- `!help [categoría]` - Ayuda del bot
-- `!ping` - Latencia del bot
-- `!info` - Información del bot
-
-### Slash Commands (/)
-Todos los comandos también están disponibles como slash commands para una mejor experiencia de usuario.
-
-## 📋 Requisitos
-
-### Dependencias Python
-```
-nextcord==2.6.0
-yt-dlp==2024.8.6
-PyNaCl==1.5.0
-python-dotenv==1.0.1
-requests==2.31.0
-aiohttp==3.9.5
+### 1. **Instalación Automática**
+```bash
+# Ejecutar el instalador
+INSTALAR_DEPENDENCIAS.bat
 ```
 
-### Permisos del Bot en Discord
-- Ver canales
-- Enviar mensajes
-- Enviar mensajes incrustados
-- Adjuntar archivos
-- Leer historial de mensajes
-- Usar comandos de barra
-- Conectar (para música)
-- Hablar (para música)
-- Banear miembros
-- Expulsar miembros
-- Gestionar mensajes
+### 2. **Configuración**
+```bash
+# Configurar el bot
+INICIAR_BOT.bat
+```
 
-## 🔧 Configuración
+### 3. **Ejecución con Dashboard**
+```bash
+# Iniciar bot + dashboard web
+LANZAR_CON_DASHBOARD.bat
+```
 
-### 1. Configuración de Discord
-1. Ve a [Discord Developer Portal](https://discord.com/developers/applications)
-2. Crea una nueva aplicación
-3. Ve a la sección "Bot" y crea un bot
-4. Copia el token del bot
-5. En "OAuth2 > URL Generator":
-   - Scopes: `bot`, `applications.commands`
-   - Permisos: Selecciona todos los permisos necesarios
+## 📋 **Comandos Completos**
 
-### 2. Variables de Entorno
-Crea un archivo `.env` con:
+### 🎵 **Música**
+- `/play <canción>` - Reproducir música de YouTube
+- `/skip` - Saltar canción actual
+- `/stop` - Parar reproducción
+- `/queue` - Ver cola de reproducción
+- `/volume <nivel>` - Ajustar volumen (1-100)
+- `/disconnect` - Desconectar del canal de voz
+
+### 🎫 **Tickets**
+- Panel automático en canal configurado
+- 5 categorías con prioridades
+- Gestión desde dashboard web
+
+### 📊 **Niveles**
+- `/nivel [usuario]` - Ver nivel y progreso
+- `/ranking [página]` - Ranking del servidor
+- `/configurar-niveles` - Configurar sistema
+
+### ⚠️ **Moderación**
+- `/avisar <usuario> <razón>` - Dar aviso
+- `/avisos <usuario>` - Ver avisos del usuario
+- `/quitar-aviso <usuario> <id>` - Quitar aviso específico
+- `/limpiar-avisos <usuario>` - Limpiar todos los avisos
+- `/ban <usuario> [razón]` - Banear usuario
+- `/kick <usuario> [razón]` - Expulsar usuario
+- `/timeout <usuario> <tiempo> [razón]` - Timeout temporal
+- `/clear <cantidad>` - Limpiar mensajes
+
+### 🛡️ **AutoMod**
+- `/automod` - Panel de configuración
+- Activar/desactivar módulos específicos
+- Configurar límites y excepciones
+
+### 👋 **Bienvenidas**
+- `/configurar-bienvenida` - Panel de configuración
+- `/canal-bienvenida <canal>` - Establecer canal
+- `/canal-despedida <canal>` - Canal de despedidas
+- `/autorole <rol>` - Rol automático
+
+### 🎮 **Diversión**
+- `/gato` - Imagen aleatoria de gato
+- `/perro` - Imagen aleatoria de perro
+- `/zorro` - Imagen aleatoria de zorro
+- `/pato` - Imagen aleatoria de pato
+- `/abrazar <usuario>` - Abrazar a alguien
+- `/besar <usuario>` - Besar a alguien
+- `/abofetear <usuario>` - Abofetear a alguien
+- `/acariciar <usuario>` - Acariciar a alguien
+- `/interact <usuario>` - Menú de interacciones
+
+### 🎤 **VoiceMaster**
+- `/vmpanel` - Panel de configuración
+- Creación automática de canales
+- Control del propietario
+
+### 💰 **Economía**
+- `/balance [usuario]` - Ver dinero
+- `/work` - Trabajar (cada 4 horas)
+- `/daily` - Bonificación diaria
+- `/shop` - Tienda de roles
+- `/transfer <usuario> <cantidad>` - Transferir dinero
+
+## 🔧 **Configuración Avanzada**
+
+### Variables de Entorno (.env)
 ```env
 DISCORD_TOKEN=tu_token_aqui
-DAILY_CHANNEL_ID=id_del_canal_opcional
+GUILD_ID=id_del_servidor
+API_SECRET_KEY=clave_secreta_api
 ```
 
-### 3. Instalación Local
+### Permisos Necesarios
+- Administrar servidor
+- Gestionar roles
+- Gestionar canales
+- Enviar mensajes
+- Gestionar mensajes
+- Conectar a voz
+- Hablar en voz
+- Usar comandos de aplicación
+
+## 🌐 **Dashboard Web**
+
+### URLs Principales
+- **Dashboard Principal**: http://localhost:8080/dashboard-web/tickets-dashboard.html
+- **Gestión Completa**: http://localhost:8080/dashboard-web/management.html
+- **API Status**: http://localhost:8080/api/status
+
+### Funcionalidades Web
+- ✅ Gestión de tickets en tiempo real
+- ✅ Estadísticas avanzadas
+- ✅ Configuración de canales
+- ✅ Gestión de warnings
+- ✅ Filtros y búsqueda
+- ✅ Responsive design
+- ✅ Actualizaciones automáticas
+
+## 📦 **Dependencias**
+
+### Principales
+- `nextcord` - Biblioteca de Discord
+- `yt-dlp` - Descarga de YouTube
+- `PyNaCl` - Audio de voz
+- `ffmpeg-python` - Procesamiento de audio
+- `aiohttp` - Servidor web
+- `Pillow` - Procesamiento de imágenes
+- `PyJWT` - Autenticación
+- `cryptography` - Seguridad
+
+### Instalación Manual
 ```bash
-# Clonar o descargar el proyecto
-git clone <repository>
-cd dabot-v2
-
-# Instalar dependencias
-pip install -r requirements.txt
-
-# Configurar variables de entorno
-# Edita el archivo .env con tu token
-
-# Ejecutar el bot
-python bot.py
+pip install nextcord yt-dlp PyNaCl ffmpeg-python aiohttp Pillow PyJWT cryptography python-dotenv
 ```
 
-## 🌐 Deployment en Render.com
+## 🆚 **Comparación con Otros Bots**
 
-### 1. Preparación
-El proyecto ya incluye los archivos necesarios:
-- `Procfile` - Comando de inicio
-- `runtime.txt` - Versión de Python
-- `requirements.txt` - Dependencias
+| Funcionalidad | DaBot v2 | MEE6 | Dyno | ProBot | La Cabra |
+|---------------|----------|------|------|--------|----------|
+| **Música** | ✅ Gratis | 💰 Premium | ✅ Limitada | ❌ No | ✅ Básica |
+| **Tickets** | ✅ 5 Categorías | 💰 Premium | ✅ Básico | ✅ Básico | ❌ No |
+| **Niveles** | ✅ Tarjetas Custom | ✅ Básico | ✅ Básico | ✅ Básico | ✅ Avanzado |
+| **AutoMod** | ✅ Completo | ✅ Básico | ✅ Avanzado | ✅ Básico | ✅ Básico |
+| **Dashboard** | ✅ Completo | 💰 Premium | ✅ Limitado | ✅ Básico | ❌ No |
+| **Interacciones** | ✅ 20+ Comandos | ❌ No | ❌ No | ❌ No | ✅ Básicas |
+| **VoiceMaster** | ✅ Incluido | ❌ No | ❌ No | ❌ No | ❌ No |
+| **API** | ✅ REST Completa | 💰 Premium | ❌ No | ❌ No | ❌ No |
+| **Costo** | ✅ **GRATIS** | 💰 $5/mes | 💰 $3/mes | 💰 $2/mes | ✅ Gratis |
 
-### 2. Configuración en Render
-1. Conecta tu repositorio de GitHub a Render
-2. Crea un nuevo "Web Service"
-3. Configura las variables de entorno:
-   - `DISCORD_TOKEN`: Tu token del bot
-   - `DAILY_CHANNEL_ID`: ID del canal para mensajes diarios (opcional)
+## 🎯 **Ventajas Únicas**
 
-### 3. Variables de Entorno en Render
-```
-DISCORD_TOKEN = tu_token_de_discord_aqui
-DAILY_CHANNEL_ID = id_del_canal_opcional
-```
+### 🔥 **Todo en Uno**
+- Reemplaza 6+ bots populares
+- Funcionalidades premium gratis
+- Dashboard web incluido
+- API REST completa
 
-### 4. Configuración del Servicio
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `python bot.py`
-- **Environment**: Python 3.13
+### 🚀 **Rendimiento**
+- Un solo bot vs múltiples
+- Menos latencia
+- Mayor estabilidad
+- Configuración unificada
 
-## 🏗️ Estructura del Proyecto
+### 💡 **Innovación**
+- Sistema de tickets más avanzado
+- Interacciones únicas
+- Dashboard responsive
+- Comandos en español
 
-```
-dabot-v2/
-├── bot.py                    # Archivo principal del bot
-├── requirements.txt          # Dependencias Python
-├── .env                     # Variables de entorno (local)
-├── Procfile                 # Comando para Render.com
-├── runtime.txt              # Versión de Python para Render.com
-├── README.md                # Este archivo
-└── modules/                 # Módulos del bot
-    ├── __init__.py
-    ├── moderation.py        # Comandos de moderación
-    ├── entertainment.py     # Comandos de entretenimiento
-    ├── music.py            # Comandos de música
-    ├── scheduled_tasks.py   # Tareas automatizadas
-    └── help_commands.py     # Comandos de ayuda
-```
+### 🛠️ **Personalización**
+- Código abierto
+- Modificable
+- Hosting propio
+- Sin límites
 
-## 🔒 Seguridad
+## 📞 **Soporte y Desarrollo**
 
-- ✅ Token almacenado en variables de entorno
-- ✅ Verificación de permisos para comandos de moderación
-- ✅ Validación de jerarquía de roles
-- ✅ Confirmación interactiva para acciones destructivas
-- ✅ Manejo robusto de errores
-- ✅ Logs detallados para debugging
+### 🔧 **Desarrollado por davito**
+- Bot profesional
+- Actualizaciones constantes
+- Soporte técnico
+- Funcionalidades a medida
 
-## 🐛 Troubleshooting
+### 📋 **Versiones**
+- **v2.0**: Versión actual completa
+- **v1.0**: Versión básica anterior
+- **v2.1**: Próximas mejoras
 
-### Error: "nextcord could not be resolved"
-- Instala las dependencias: `pip install -r requirements.txt`
+### 🐛 **Reportar Bugs**
+- GitHub Issues
+- Discord directo
+- Logs automáticos
+- Corrección rápida
 
-### Error: "Token inválido"
-- Verifica que el token en `.env` sea correcto
-- Asegúrate que el bot esté habilitado en Discord Developer Portal
+## 🎉 **¡Comienza Ahora!**
 
-### Error: "No tengo permisos"
-- Verifica que el bot tenga los permisos necesarios en el servidor
-- Revisa la jerarquía de roles
-
-### Música no funciona
-- Instala FFmpeg en el sistema
-- Verifica que el bot tenga permisos de voz
-- Asegúrate de estar en un canal de voz
-
-## 📝 Logs
-El bot genera logs detallados para todas las operaciones:
-- Conexión y desconexión
-- Ejecución de comandos
-- Errores y excepciones
-- Tareas automatizadas
-
-## 🤝 Contribuir
-Si encuentras bugs o quieres agregar funcionalidades:
-1. Reporta issues detallando el problema
-2. Propón mejoras con ejemplos específicos
-3. Mantén el código limpio y comentado
-
-## 📄 Licencia
-Este proyecto es de código abierto. Úsalo y modifícalo libremente.
+1. **Descarga** el bot
+2. **Ejecuta** `INSTALAR_DEPENDENCIAS.bat`
+3. **Configura** con `INICIAR_BOT.bat`
+4. **Lanza** con `LANZAR_CON_DASHBOARD.bat`
+5. **Disfruta** de todas las funcionalidades
 
 ---
-**Desarrollado con ❤️ usando nextcord**
+
+### 🌟 **DaBot v2 - El único bot que necesitas** 🌟
+
+*Reemplaza MEE6, Dyno, ProBot, VoiceMaster y más con una sola solución completa y gratuita.*

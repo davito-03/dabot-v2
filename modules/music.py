@@ -4,12 +4,14 @@ Incluye reproducción de música de YouTube con sistema de cola
 """
 
 import asyncio
+import datetime
 import logging
 import re
 import nextcord
 from nextcord.ext import commands
 import yt_dlp
 from collections import deque
+from modules.config_manager import get_config, is_module_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -253,8 +255,137 @@ class Music(commands.Cog):
         search: str = nextcord.SlashOption(description="URL de YouTube o términos de búsqueda")
     ):
         """Comando slash para reproducir música"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.play_music(ctx, search=search)
+        await interaction.response.defer()
+        
+        # Verificar permisos
+        config = get_config()
+        if not is_module_enabled('music'):
+            await interaction.followup.send("❌ El módulo de música está deshabilitado.", ephemeral=True)
+            return
+        
+        # Verificar canal de voz
+        if not interaction.user.voice:
+            await interaction.followup.send("❌ Debes estar en un canal de voz para reproducir música.")
+            return
+        
+        try:
+            # Conectar al canal de voz si no está conectado
+            voice_channel = interaction.user.voice.channel
+            if not interaction.guild.voice_client:
+                voice_client = await voice_channel.connect()
+            else:
+                voice_client = interaction.guild.voice_client
+                if voice_client.channel != voice_channel:
+                    await voice_client.move_to(voice_channel)
+            
+            # Buscar y agregar música
+            await interaction.followup.send(f"🔍 Buscando: **{search}**...")
+            
+            if "youtube.com" in search or "youtu.be" in search:
+                url = search
+            else:
+                # Buscar en YouTube
+                ydl_opts = {
+                    'quiet': True,
+                    'no_warnings': True,
+                    'default_search': 'ytsearch1:',
+                    'extractaudio': True,
+                    'audioformat': 'mp3',
+                    'outtmpl': '%(title)s.%(ext)s',
+                    'nocheckcertificate': True,
+                    'ignoreerrors': False,
+                    'logtostderr': False,
+                    'restrictfilenames': True,
+                    'noplaylist': True,
+                    'extract_flat': False,
+                    'writethumbnail': False,
+                    'writeinfojson': False
+                }
+                
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    search_results = ydl.extract_info(search, download=False)
+                    if 'entries' in search_results and search_results['entries']:
+                        url = search_results['entries'][0]['webpage_url']
+                    else:
+                        await interaction.followup.send("❌ No se encontraron resultados.")
+                        return
+            
+            # Extraer información del video
+            ydl_opts = {
+                'quiet': True,
+                'no_warnings': True,
+                'extractaudio': True,
+                'audioformat': 'mp3',
+                'outtmpl': '%(title)s.%(ext)s',
+                'nocheckcertificate': True,
+                'ignoreerrors': False,
+                'logtostderr': False,
+                'restrictfilenames': True,
+                'noplaylist': True,
+                'extract_flat': False
+            }
+            
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                
+                song_info = {
+                    'url': info.get('url'),
+                    'title': info.get('title', 'Título desconocido'),
+                    'duration': info.get('duration', 0),
+                    'thumbnail': info.get('thumbnail'),
+                    'webpage_url': info.get('webpage_url', url),
+                    'requester': interaction.user.mention
+                }
+                
+                queue = self.get_queue(interaction.guild.id)
+                
+                if voice_client.is_playing() or voice_client.is_paused():
+                    # Agregar a la cola
+                    queue.add_song(song_info)
+                    embed = nextcord.Embed(
+                        title="🎵 Agregado a la cola",
+                        description=f"**{song_info['title']}**",
+                        color=nextcord.Color.green()
+                    )
+                    embed.add_field(name="Posición en cola", value=f"{len(queue.queue)}", inline=True)
+                    if song_info['duration']:
+                        duration = str(datetime.timedelta(seconds=song_info['duration']))
+                        embed.add_field(name="Duración", value=duration, inline=True)
+                    embed.add_field(name="Solicitado por", value=song_info['requester'], inline=True)
+                    if song_info['thumbnail']:
+                        embed.set_thumbnail(url=song_info['thumbnail'])
+                    
+                    await interaction.followup.send(embed=embed)
+                else:
+                    # Reproducir inmediatamente
+                    queue.current = song_info
+                    ffmpeg_options = {
+                        'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                        'options': '-vn'
+                    }
+                    
+                    voice_client.play(
+                        nextcord.FFmpegPCMAudio(song_info['url'], **ffmpeg_options),
+                        after=lambda e: self.bot.loop.create_task(self.play_next(interaction.guild)) if e else None
+                    )
+                    
+                    embed = nextcord.Embed(
+                        title="🎵 Reproduciendo ahora",
+                        description=f"**{song_info['title']}**",
+                        color=nextcord.Color.blue()
+                    )
+                    if song_info['duration']:
+                        duration = str(datetime.timedelta(seconds=song_info['duration']))
+                        embed.add_field(name="Duración", value=duration, inline=True)
+                    embed.add_field(name="Solicitado por", value=song_info['requester'], inline=True)
+                    if song_info['thumbnail']:
+                        embed.set_thumbnail(url=song_info['thumbnail'])
+                    
+                    await interaction.followup.send(embed=embed)
+                    
+        except Exception as e:
+            logger.error(f"Error en comando slash play: {e}")
+            await interaction.followup.send("❌ Error al reproducir la música.")
     
     @commands.command(name='skip', aliases=['s'])
     async def skip_song(self, ctx):
@@ -277,8 +408,24 @@ class Music(commands.Cog):
     @nextcord.slash_command(name="skip", description="Salta la canción actual")
     async def slash_skip(self, interaction: nextcord.Interaction):
         """Comando slash para saltar canción"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.skip_song(ctx)
+        await interaction.response.defer()
+        
+        # Verificar módulo habilitado
+        if not is_module_enabled('music'):
+            await interaction.followup.send("❌ El módulo de música está deshabilitado.", ephemeral=True)
+            return
+        
+        try:
+            if not interaction.guild.voice_client or not interaction.guild.voice_client.is_playing():
+                await interaction.followup.send("❌ No se está reproduciendo música.")
+                return
+            
+            interaction.guild.voice_client.stop()
+            await interaction.followup.send("⏭️ Canción saltada.")
+            
+        except Exception as e:
+            logger.error(f"Error en comando slash skip: {e}")
+            await interaction.followup.send("❌ Error al saltar la canción.")
     
     @commands.command(name='stop')
     async def stop_music(self, ctx):
@@ -302,8 +449,25 @@ class Music(commands.Cog):
     @nextcord.slash_command(name="stop", description="Detiene la música y limpia la cola")
     async def slash_stop(self, interaction: nextcord.Interaction):
         """Comando slash para detener música"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.stop_music(ctx)
+        await interaction.response.defer()
+        
+        # Verificar módulo habilitado
+        if not is_module_enabled('music'):
+            await interaction.followup.send("❌ El módulo de música está deshabilitado.", ephemeral=True)
+            return
+        
+        try:
+            if interaction.guild.voice_client:
+                queue = self.get_queue(interaction.guild.id)
+                queue.clear()
+                interaction.guild.voice_client.stop()
+                await interaction.followup.send("⏹️ Música detenida y cola limpiada.")
+            else:
+                await interaction.followup.send("❌ No estoy conectado a ningún canal de voz.")
+                
+        except Exception as e:
+            logger.error(f"Error en comando slash stop: {e}")
+            await interaction.followup.send("❌ Error al detener la música.")
     
     @commands.command(name='queue', aliases=['q'])
     async def show_queue(self, ctx):
@@ -366,8 +530,61 @@ class Music(commands.Cog):
     @nextcord.slash_command(name="queue", description="Muestra la cola de reproducción")
     async def slash_queue(self, interaction: nextcord.Interaction):
         """Comando slash para mostrar cola"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.show_queue(ctx)
+        await interaction.response.defer()
+        
+        # Verificar módulo habilitado
+        if not is_module_enabled('music'):
+            await interaction.followup.send("❌ El módulo de música está deshabilitado.", ephemeral=True)
+            return
+        
+        try:
+            queue = self.get_queue(interaction.guild.id)
+            
+            if not queue.current and not queue.queue:
+                await interaction.followup.send("❌ La cola está vacía.")
+                return
+            
+            embed = nextcord.Embed(
+                title="🎵 Cola de Reproducción",
+                color=nextcord.Color.blue()
+            )
+            
+            # Canción actual
+            if queue.current:
+                current_title = queue.current.get('title', 'Título desconocido')
+                embed.add_field(
+                    name="🎵 Reproduciendo ahora:",
+                    value=f"**{current_title}**\nSolicitado por: {queue.current.get('requester', 'Desconocido')}",
+                    inline=False
+                )
+            
+            # Próximas canciones en cola
+            if queue.queue:
+                next_songs = []
+                for i, song in enumerate(list(queue.queue)[:10]):  # Mostrar máximo 10
+                    title = song.get('title', 'Título desconocido')
+                    requester = song.get('requester', 'Desconocido')
+                    next_songs.append(f"`{i+1}.` **{title}** - {requester}")
+                
+                if next_songs:
+                    embed.add_field(
+                        name=f"📋 Próximas canciones ({len(queue.queue)} en cola):",
+                        value="\n".join(next_songs),
+                        inline=False
+                    )
+                
+                if len(queue.queue) > 10:
+                    embed.add_field(
+                        name="📝 Nota:",
+                        value=f"Y {len(queue.queue) - 10} canciones más...",
+                        inline=False
+                    )
+            
+            await interaction.followup.send(embed=embed)
+            
+        except Exception as e:
+            logger.error(f"Error en comando slash queue: {e}")
+            await interaction.followup.send("❌ Error al mostrar la cola.")
     
     @commands.command(name='volume', aliases=['vol'])
     async def set_volume(self, ctx, volume: int = None):
@@ -406,8 +623,34 @@ class Music(commands.Cog):
         volume: int = nextcord.SlashOption(description="Volumen (0-100)", min_value=0, max_value=100, required=False)
     ):
         """Comando slash para ajustar volumen"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.set_volume(ctx, volume)
+        await interaction.response.defer()
+        
+        # Verificar módulo habilitado
+        if not is_module_enabled('music'):
+            await interaction.followup.send("❌ El módulo de música está deshabilitado.", ephemeral=True)
+            return
+        
+        try:
+            if volume is None:
+                queue = self.get_queue(interaction.guild.id)
+                await interaction.followup.send(f"🔊 Volumen actual: {int(queue.volume * 100)}%")
+                return
+            
+            if not interaction.guild.voice_client:
+                await interaction.followup.send("❌ No estoy conectado a ningún canal de voz.")
+                return
+            
+            queue = self.get_queue(interaction.guild.id)
+            queue.volume = volume / 100.0
+            
+            if hasattr(interaction.guild.voice_client.source, 'volume'):
+                interaction.guild.voice_client.source.volume = queue.volume
+            
+            await interaction.followup.send(f"🔊 Volumen ajustado a {volume}%")
+            
+        except Exception as e:
+            logger.error(f"Error en comando slash volume: {e}")
+            await interaction.followup.send("❌ Error al ajustar el volumen.")
     
     @commands.command(name='disconnect', aliases=['dc', 'leave'])
     async def disconnect(self, ctx):
@@ -431,5 +674,26 @@ class Music(commands.Cog):
     @nextcord.slash_command(name="disconnect", description="Desconecta el bot del canal de voz")
     async def slash_disconnect(self, interaction: nextcord.Interaction):
         """Comando slash para desconectar"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.disconnect(ctx)
+        await interaction.response.defer()
+        
+        # Verificar módulo habilitado
+        if not is_module_enabled('music'):
+            await interaction.followup.send("❌ El módulo de música está deshabilitado.", ephemeral=True)
+            return
+        
+        try:
+            if interaction.guild.voice_client:
+                queue = self.get_queue(interaction.guild.id)
+                queue.clear()
+                await interaction.guild.voice_client.disconnect()
+                await interaction.followup.send("👋 Desconectado del canal de voz.")
+            else:
+                await interaction.followup.send("❌ No estoy conectado a ningún canal de voz.")
+                
+        except Exception as e:
+            logger.error(f"Error en comando slash disconnect: {e}")
+            await interaction.followup.send("❌ Error al desconectar.")
+
+def setup(bot):
+    """Función setup para cargar el cog"""
+    return Music(bot)

@@ -378,3 +378,7 @@ class AntiSpam(commands.Cog):
         except Exception as e:
             logger.error(f"error en unmute: {e}")
             await ctx.send("❌ error al desmutear usuario.")
+
+def setup(bot):
+    """Función setup para cargar el cog"""
+    return AntiSpam(bot)

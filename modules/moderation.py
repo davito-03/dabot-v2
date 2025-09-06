@@ -1,11 +1,13 @@
 """
 Módulo de Moderación para el bot de Discord
-Incluye comandos para banear, kick y limpiar mensajes
+Incluye comandos para banear, kick, limpiar mensajes y sistema de avisos
 """
 
 import logging
 import nextcord
 from nextcord.ext import commands
+import json
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,189 @@ class Moderation(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
+        self.warnings = {}
+        self.load_warnings()
     
+    def load_warnings(self):
+        """cargar avisos desde archivo"""
+        try:
+            with open('data/warnings.json', 'r', encoding='utf-8') as f:
+                self.warnings = json.load(f)
+        except FileNotFoundError:
+            self.warnings = {}
+    
+    def save_warnings(self):
+        """guardar avisos a archivo"""
+        try:
+            with open('data/warnings.json', 'w', encoding='utf-8') as f:
+                json.dump(self.warnings, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            logger.error(f"error guardando avisos: {e}")
+    
+    
+    @nextcord.slash_command(name="avisar", description="Dar un aviso a un usuario")
+    @commands.has_permissions(moderate_members=True)
+    async def warn_user(self, interaction: nextcord.Interaction, 
+                       usuario: nextcord.Member, *, razon: str = "No se especificó razón"):
+        """dar aviso a un usuario"""
+        if usuario.bot:
+            await interaction.response.send_message("❌ No puedes avisar a un bot.", ephemeral=True)
+            return
+        
+        if usuario == interaction.user:
+            await interaction.response.send_message("❌ No puedes avisarte a ti mismo.", ephemeral=True)
+            return
+        
+        # crear estructura de avisos
+        guild_id = str(interaction.guild.id)
+        user_id = str(usuario.id)
+        
+        if guild_id not in self.warnings:
+            self.warnings[guild_id] = {}
+        
+        if user_id not in self.warnings[guild_id]:
+            self.warnings[guild_id][user_id] = []
+        
+        # crear aviso
+        warning = {
+            'id': len(self.warnings[guild_id][user_id]) + 1,
+            'reason': razon,
+            'moderator': str(interaction.user),
+            'moderator_id': interaction.user.id,
+            'timestamp': datetime.now().isoformat(),
+            'active': True
+        }
+        
+        self.warnings[guild_id][user_id].append(warning)
+        self.save_warnings()
+        
+        # notificar al usuario
+        try:
+            dm_embed = nextcord.Embed(
+                title="⚠️ Has recibido un aviso",
+                description=f"Has recibido un aviso en **{interaction.guild.name}**",
+                color=0xe74c3c
+            )
+            dm_embed.add_field(name="Razón", value=razon, inline=False)
+            dm_embed.add_field(name="Moderador", value=str(interaction.user), inline=False)
+            dm_embed.add_field(name="Total de avisos", value=len(self.warnings[guild_id][user_id]), inline=False)
+            await usuario.send(embed=dm_embed)
+        except:
+            pass
+        
+        # respuesta en el canal
+        embed = nextcord.Embed(
+            title="✅ Aviso dado",
+            description=f"Se ha dado un aviso a {usuario.mention}",
+            color=0xe74c3c
+        )
+        embed.add_field(name="Razón", value=razon, inline=False)
+        embed.add_field(name="Moderador", value=interaction.user.mention, inline=True)
+        embed.add_field(name="Total de avisos", value=len(self.warnings[guild_id][user_id]), inline=True)
+        
+        await interaction.response.send_message(embed=embed)
+    
+    @nextcord.slash_command(name="avisos", description="Ver los avisos de un usuario")
+    @commands.has_permissions(moderate_members=True)
+    async def view_warnings(self, interaction: nextcord.Interaction, 
+                           usuario: nextcord.Member):
+        """ver avisos de un usuario"""
+        guild_id = str(interaction.guild.id)
+        user_id = str(usuario.id)
+        
+        if guild_id not in self.warnings or user_id not in self.warnings[guild_id]:
+            embed = nextcord.Embed(
+                title="📋 Avisos del usuario",
+                description=f"{usuario.mention} no tiene avisos.",
+                color=0x2ecc71
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        user_warnings = self.warnings[guild_id][user_id]
+        active_warnings = [w for w in user_warnings if w.get('active', True)]
+        
+        embed = nextcord.Embed(
+            title=f"📋 Avisos de {usuario.display_name}",
+            description=f"Total: {len(active_warnings)} avisos activos",
+            color=0xe74c3c if active_warnings else 0x2ecc71
+        )
+        
+        for warning in active_warnings[-10:]:  # últimos 10
+            timestamp = datetime.fromisoformat(warning['timestamp']).strftime("%d/%m/%Y %H:%M")
+            embed.add_field(
+                name=f"Aviso #{warning['id']}",
+                value=f"**Razón:** {warning['reason']}\n**Moderador:** {warning['moderator']}\n**Fecha:** {timestamp}",
+                inline=False
+            )
+        
+        embed.set_thumbnail(url=usuario.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+    
+    @nextcord.slash_command(name="quitar-aviso", description="Quitar un aviso específico de un usuario")
+    @commands.has_permissions(moderate_members=True)
+    async def remove_warning(self, interaction: nextcord.Interaction, 
+                            usuario: nextcord.Member, aviso_id: int):
+        """quitar aviso específico"""
+        guild_id = str(interaction.guild.id)
+        user_id = str(usuario.id)
+        
+        if guild_id not in self.warnings or user_id not in self.warnings[guild_id]:
+            await interaction.response.send_message("❌ Este usuario no tiene avisos.", ephemeral=True)
+            return
+        
+        user_warnings = self.warnings[guild_id][user_id]
+        
+        # buscar y desactivar el aviso
+        warning_found = False
+        for warning in user_warnings:
+            if warning['id'] == aviso_id and warning.get('active', True):
+                warning['active'] = False
+                warning['removed_by'] = str(interaction.user)
+                warning['removed_at'] = datetime.now().isoformat()
+                warning_found = True
+                break
+        
+        if not warning_found:
+            await interaction.response.send_message("❌ Aviso no encontrado o ya removido.", ephemeral=True)
+            return
+        
+        self.save_warnings()
+        
+        embed = nextcord.Embed(
+            title="✅ Aviso removido",
+            description=f"Se removió el aviso #{aviso_id} de {usuario.mention}",
+            color=0x2ecc71
+        )
+        await interaction.response.send_message(embed=embed)
+    
+    @nextcord.slash_command(name="limpiar-avisos", description="Limpiar todos los avisos de un usuario")
+    @commands.has_permissions(administrator=True)
+    async def clear_warnings(self, interaction: nextcord.Interaction, 
+                            usuario: nextcord.Member):
+        """limpiar todos los avisos de un usuario"""
+        guild_id = str(interaction.guild.id)
+        user_id = str(usuario.id)
+        
+        if guild_id not in self.warnings or user_id not in self.warnings[guild_id]:
+            await interaction.response.send_message("❌ Este usuario no tiene avisos.", ephemeral=True)
+            return
+        
+        # desactivar todos los avisos
+        for warning in self.warnings[guild_id][user_id]:
+            warning['active'] = False
+            warning['removed_by'] = str(interaction.user)
+            warning['removed_at'] = datetime.now().isoformat()
+        
+        self.save_warnings()
+        
+        embed = nextcord.Embed(
+            title="✅ Avisos limpiados",
+            description=f"Se limpiaron todos los avisos de {usuario.mention}",
+            color=0x2ecc71
+        )
+        await interaction.response.send_message(embed=embed)
+
     @commands.command(name='ban')
     @commands.has_permissions(administrator=True)
     async def ban_member(self, ctx, member: nextcord.Member, *, reason="No se proporcionó razón"):
@@ -292,7 +476,7 @@ class Moderation(commands.Cog):
     async def slash_clear(
         self,
         interaction: nextcord.Interaction,
-        amount: int = nextcord.SlashOption(description="Cantidad de mensajes a eliminar (máximo 100)", min_value=1, max_value=100)
+        amount: int = nextcord.SlashOption(description="Cantidad de mensajes a eliminar", min_value=1, max_value=1000)
     ):
         """Comando slash para limpiar mensajes"""
         if not interaction.user.guild_permissions.administrator:
@@ -339,3 +523,7 @@ class ConfirmationView(nextcord.ui.View):
     
     async def on_timeout(self):
         self.confirmed = False
+
+def setup(bot):
+    """Función setup para cargar el cog"""
+    return Moderation(bot)

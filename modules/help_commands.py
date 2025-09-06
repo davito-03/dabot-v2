@@ -460,3 +460,7 @@ class HelpCommands(commands.Cog):
         except Exception as e:
             logger.error(f"Error en comando info: {e}")
             await interaction.response.send_message("❌ Error al mostrar la información.", ephemeral=True)
+
+def setup(bot):
+    """Función setup para cargar el cog"""
+    return HelpCommands(bot)

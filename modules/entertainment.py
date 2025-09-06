@@ -753,7 +753,7 @@ class Entertainment(commands.Cog):
             logger.error(f"error en guess: {e}")
             await ctx.send("❌ error en el juego.")
     
-    @commands.command(name='trivia', aliases=['pregunta'])
+    @commands.command(name='trivia', aliases=['preguntita'])
     async def trivia_game(self, ctx):
         """
         juego de preguntas de trivia

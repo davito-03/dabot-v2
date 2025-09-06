@@ -417,3 +417,7 @@ class LoggingSystem(commands.Cog):
         except Exception as e:
             logger.error(f"error en log status: {e}")
             await ctx.send("❌ error al obtener estado de logs.")
+
+def setup(bot):
+    """Función setup para cargar el cog"""
+    return LoggingSystem(bot)

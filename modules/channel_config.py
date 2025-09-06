@@ -399,4 +399,5 @@ class ChannelSelectView(nextcord.ui.View):
         await interaction.response.edit_message(embed=embed, view=None)
 
 def setup(bot):
-    bot.add_cog(ChannelConfig(bot))
+    """Función setup para cargar el cog"""
+    return ChannelConfig(bot)

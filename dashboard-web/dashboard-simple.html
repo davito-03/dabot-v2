@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Simple - Dabot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #5865f2;
+            --bg-dark: #1a1a1a;
+            --bg-light: #2d2d2d;
+            --text-light: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-color: #404040;
+            --success-color: #57f287;
+            --warning-color: #fee75c;
+            --error-color: #ed4245;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--bg-light);
+            padding: 1rem 0;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--success-color);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-light);
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #4752c4;
+        }
+
+        .btn-secondary {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge-warning {
+            background: var(--warning-color);
+            color: #000;
+        }
+
+        .badge-error {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .badge-success {
+            background: var(--success-color);
+            color: #000;
+        }
+
+        .config-section {
+            margin: 1rem 0;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .config-label {
+            font-weight: bold;
+        }
+
+        .role-select {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="/media/favicon-32x32.png" alt="Dabot" style="width: 32px; height: 32px;">
+                    <h1>Dabot Dashboard</h1>
+                </div>
+                <div class="status-indicator">
+                    <span>●</span>
+                    <span>Bot Online</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard-grid">
+            <!-- Tickets -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">🎫 Tickets</div>
+                        <div class="card-subtitle">Sistema de soporte</div>
+                    </div>
+                    <button class="btn" onclick="refreshTickets()">Actualizar</button>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-number" id="open-tickets">0</div>
+                        <div class="stat-label">Abiertos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="pending-tickets">0</div>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="closed-tickets">0</div>
+                        <div class="stat-label">Cerrados</div>
+                    </div>
+                </div>
+
+                <div id="recent-tickets">
+                    <div class="list-item">
+                        <span>Ticket #001 - Usuario Test</span>
+                        <span class="badge badge-warning">Pendiente</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moderación -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">🛡️ Moderación</div>
+                        <div class="card-subtitle">Warns y sanciones</div>
+                    </div>
+                    <button class="btn" onclick="refreshModeration()">Actualizar</button>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-number" id="total-warns">0</div>
+                        <div class="stat-label">Warnings</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="total-bans">0</div>
+                        <div class="stat-label">Baneos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="total-appeals">0</div>
+                        <div class="stat-label">Apelaciones</div>
+                    </div>
+                </div>
+
+                <div id="recent-moderation">
+                    <div class="list-item">
+                        <span>Sin actividad reciente</span>
+                        <span class="badge badge-success">Todo OK</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración de Comandos -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">⚙️ Configuración</div>
+                        <div class="card-subtitle">Roles y permisos</div>
+                    </div>
+                    <button class="btn" onclick="saveConfig()">Guardar</button>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-item">
+                        <div class="config-label">Comando /warn</div>
+                        <select class="role-select" id="warn-role">
+                            <option value="@everyone">@everyone</option>
+                            <option value="Moderador">Moderador</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="config-item">
+                        <div class="config-label">Comando /ban</div>
+                        <select class="role-select" id="ban-role">
+                            <option value="Moderador">Moderador</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="config-item">
+                        <div class="config-label">Comando /kick</div>
+                        <select class="role-select" id="kick-role">
+                            <option value="Moderador">Moderador</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="config-item">
+                        <div class="config-label">Gestión Tickets</div>
+                        <select class="role-select" id="ticket-role">
+                            <option value="Staff">Staff</option>
+                            <option value="Moderador">Moderador</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado del Bot -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">🤖 Estado del Bot</div>
+                        <div class="card-subtitle">Información general</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="restartBot()">Reiniciar</button>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-number" id="guild-count">1</div>
+                        <div class="stat-label">Servidores</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="user-count">-</div>
+                        <div class="stat-label">Usuarios</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="uptime">-</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                </div>
+
+                <div id="bot-status-details">
+                    <div class="list-item">
+                        <span>Latencia:</span>
+                        <span id="bot-ping">-ms</span>
+                    </div>
+                    <div class="list-item">
+                        <span>Versión:</span>
+                        <span>DaBot v2.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Dabot Dashboard Simplificado - Desarrollado por Davito</p>
+        </div>
+    </footer>
+
+    <script>
+        // Funciones básicas para el dashboard
+        async function loadDashboardData() {
+            try {
+                // Cargar estado del bot
+                const botStatus = await fetch('/api/status').then(r => r.json());
+                updateBotStatus(botStatus);
+                
+                // Cargar tickets
+                await refreshTickets();
+                
+                // Cargar moderación
+                await refreshModeration();
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            }
+        }
+
+        function updateBotStatus(status) {
+            if (status.guilds) {
+                document.getElementById('guild-count').textContent = status.guilds.length;
+            }
+            if (status.ping) {
+                document.getElementById('bot-ping').textContent = status.ping + 'ms';
+            }
+            if (status.uptime) {
+                document.getElementById('uptime').textContent = formatUptime(status.uptime);
+            }
+        }
+
+        async function refreshTickets() {
+            try {
+                // Simular datos de tickets (reemplazar con API real)
+                const tickets = {
+                    open: Math.floor(Math.random() * 5),
+                    pending: Math.floor(Math.random() * 3),
+                    closed: Math.floor(Math.random() * 10)
+                };
+                
+                document.getElementById('open-tickets').textContent = tickets.open;
+                document.getElementById('pending-tickets').textContent = tickets.pending;
+                document.getElementById('closed-tickets').textContent = tickets.closed;
+                
+                console.log('Tickets actualizados');
+            } catch (error) {
+                console.error('Error actualizando tickets:', error);
+            }
+        }
+
+        async function refreshModeration() {
+            try {
+                // Simular datos de moderación (reemplazar con API real)
+                const moderation = {
+                    warns: Math.floor(Math.random() * 10),
+                    bans: Math.floor(Math.random() * 3),
+                    appeals: Math.floor(Math.random() * 2)
+                };
+                
+                document.getElementById('total-warns').textContent = moderation.warns;
+                document.getElementById('total-bans').textContent = moderation.bans;
+                document.getElementById('total-appeals').textContent = moderation.appeals;
+                
+                console.log('Moderación actualizada');
+            } catch (error) {
+                console.error('Error actualizando moderación:', error);
+            }
+        }
+
+        async function saveConfig() {
+            try {
+                const config = {
+                    warn_role: document.getElementById('warn-role').value,
+                    ban_role: document.getElementById('ban-role').value,
+                    kick_role: document.getElementById('kick-role').value,
+                    ticket_role: document.getElementById('ticket-role').value
+                };
+                
+                // Simular guardado (reemplazar con API real)
+                console.log('Configuración guardada:', config);
+                alert('Configuración guardada correctamente');
+            } catch (error) {
+                console.error('Error guardando configuración:', error);
+                alert('Error al guardar la configuración');
+            }
+        }
+
+        async function restartBot() {
+            if (confirm('¿Estás seguro de que quieres reiniciar el bot?')) {
+                try {
+                    await fetch('/api/restart', { method: 'POST' });
+                    alert('Bot reiniciado correctamente');
+                } catch (error) {
+                    console.error('Error reiniciando bot:', error);
+                    alert('Error al reiniciar el bot');
+                }
+            }
+        }
+
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+        }
+
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Dashboard simplificado cargado');
+            loadDashboardData();
+            
+            // Actualizar cada 30 segundos
+            setInterval(loadDashboardData, 30000);
+        });
+    </script>
+</body>
+</html>

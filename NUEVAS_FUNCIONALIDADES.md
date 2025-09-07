@@ -1,149 +1,352 @@
-# 🎊 DABOT V2 - ACTUALIZACIÓN COMPLETA CON CONFIGURACIÓN PERSISTENTE
+# 🚀 DaBot v2 - Nuevas Funcionalidades
 
-## ✨ NUEVAS FUNCIONALIDADES AÑADIDAS
+## 📋 Resumen de Actualizaciones
 
-### 🔞 COMANDOS NSFW EXPANDIDOS
-- ✅ **`/waifu`** - Imágenes waifu NSFW
-- ✅ **`/neko`** - Imágenes neko NSFW  
-- ✅ **`/nekotina`** - Nekotinas especiales (variación única)
-- ✅ **`/trap`** - Imágenes trap NSFW
-- ✅ **`/ahegao`** - Imágenes ahegao NSFW
-- ✅ **`/yuri`** - Imágenes yuri NSFW
-- ✅ **`/blowjob`** - Imágenes blowjob NSFW
-- ✅ **`/hentai`** - Imágenes hentai NSFW
-- ✅ **`/nsfw-random`** - Imagen NSFW aleatoria de cualquier categoría
+DaBot v2 ha sido mejorado con tres sistemas principales que revolucionan la gestión de servidores Discord:
 
-**Características:**
-- 🔒 Solo funcionan en canales marcados como NSFW
-- 🎨 Múltiples APIs como respaldo (waifu.pics, nekos.life)
-- 🎲 Sistema de categorías aleatorias
-- 🖼️ Embeds mejorados con información del solicitante
+### ✨ Nuevas Características Implementadas
 
-### 🗄️ SISTEMA DE CONFIGURACIÓN PERSISTENTE
+#### 1. 🎫 Sistema de Tickets con Transcripciones
+- **Transcripciones automáticas**: Todos los tickets se guardan en un canal dedicado
+- **Canal configurable**: Posibilidad de especificar dónde se guardan las transcripciones
+- **Base de datos SQLite**: Almacenamiento persistente de conversaciones
+- **Logs detallados**: Registro completo de actividad de tickets
 
-#### **Base de Datos SQLite Integrada**
-- 📊 **Tabla `server_configs`** - Configuraciones completas por servidor
-- 📝 **Tabla `server_channels`** - Canales especiales por servidor
-- 👑 **Tabla `server_roles`** - Roles importantes por servidor  
-- ⚙️ **Tabla `server_settings`** - Configuraciones específicas por servidor
+#### 2. 🎙️ VoiceMaster Avanzado
+- **Canales temporales**: Los usuarios pueden crear sus propios canales de voz
+- **Panel de control completo**: 8 botones de gestión avanzada
+- **Ownership transferible**: Capacidad de transferir control del canal
+- **Permisos granulares**: Control total sobre acceso y configuración
 
-#### **Detección Automática al Unirse a Servidores**
-- 🔍 **Auto-detección de canales:**
-  - `general`, `chat`, `inicio`, `main` → Canal general
-  - `welcome`, `bienvenida`, `entrada` → Canal de bienvenida
-  - `logs`, `registro`, `audit` → Canal de registros
-  - Canales NSFW automáticamente detectados
-  
-- 🔍 **Auto-detección de roles:**
-  - Roles con permisos de administrador
-  - Roles con permisos de moderación
-  - Roles de "muted" o "silenciado"
+#### 3. 🛡️ Sistema de Verificación Anti-Bot
+- **Verificación obligatoria**: Botón para verificar usuarios reales
+- **Protección automática**: Previene entrada de bots maliciosos
+- **Roles automáticos**: Asignación de rol "Verificado" tras verificación
+- **Permisos escalonados**: Acceso limitado hasta verificación
 
-### 🎛️ COMANDOS DE CONFIGURACIÓN AVANZADA
+#### 4. 🏗️ Plantillas de Servidor Mejoradas
+- **Setup automático**: Configuración completa con un comando
+- **Tres tipos de plantillas**: Gaming, Comunidad General, Estudio
+- **Integración completa**: Todos los sistemas se configuran automáticamente
+- **Canales especializados**: Estructura optimizada para cada tipo de servidor
 
-#### **`/setup` - Configuración Automática**
-- 🚀 Configura el bot automáticamente al unirse a un servidor
-- 📋 Muestra resumen de configuración detectada
-- ✅ Activa todos los sistemas básicos
+---
 
-#### **`/serverconfig` - Configuración Manual Avanzada**
+## 🎮 Plantilla Gaming
 
-**Subcomandos disponibles:**
+### Estructura de Canales:
+```
+🛡️ VERIFICACIÓN
+├── 🔐-verificacion
 
-- **`/serverconfig channels [tipo] [canal]`**
-  - Tipos: `welcome`, `goodbye`, `logs`, `mod_logs`, `music`, `nsfw`, `general`, `announcements`
-  - Asigna canales específicos para cada función
+📋 INFORMACIÓN  
+├── 📜-reglas
+├── 📢-anuncios
+└── 🎉-eventos
 
-- **`/serverconfig roles [tipo] [rol]`**  
-  - Tipos: `admin`, `mod`, `muted`, `verified`, `vip`
-  - Configura roles con permisos específicos
+💬 GENERAL
+├── 💬-general
+├── 🤖-bot-commands
+└── 🔞-nsfw
 
-- **`/serverconfig settings [setting] [valor]`**
-  - Settings: `welcome_enabled`, `goodbye_enabled`, `logging_enabled`, `moderation_enabled`, `music_enabled`, `nsfw_enabled`, `prefix`, `language`
-  - Configuraciones booleanas y de texto
+🎮 GAMING
+├── 🎮-gaming-general
+├── 🏆-torneos
+├── 👥-buscar-equipo
+└── 📊-estadisticas
 
-- **`/serverconfig automod [opciones]`**
-  - `anti_spam`, `anti_links`, `anti_caps`, `bad_words`
-  - Configuración completa de auto-moderación
+🎫 SOPORTE
+├── 🎫-crear-ticket
+└── 📝-transcripciones
 
-- **`/serverconfig view`**
-  - Ver toda la configuración actual del servidor
-  - Información organizada por categorías
-
-- **`/serverconfig reset`**
-  - Restablecer configuración a valores por defecto
-  - Sistema de confirmación de seguridad
-
-### 🔧 INTEGRACIÓN CON SISTEMA EXISTENTE
-
-#### **ConfigManager Mejorado**
-- 🔄 **Compatibilidad híbrida:** Configuración global (YAML) + configuración por servidor (SQLite)
-- 🎯 **Prioridad inteligente:** Configuración de servidor sobrescribe configuración global
-- 🛡️ **Fallback automático:** Si falla la base de datos, usa configuración global
-- 🔍 **Conversión automática:** Convierte paths de configuración entre formatos
-
-#### **Nuevas Funciones del ConfigManager**
-```python
-# Obtener configuración con prioridad de servidor
-get_config('moderation.enabled', guild_id="123456789")
-
-# Configurar específicamente para un servidor  
-set_server_config(guild_id, 'nsfw_enabled', True)
-
-# Obtener canales y roles configurados
-get_server_channel(guild_id, 'welcome')
-get_server_role(guild_id, 'admin')
+🎙️ CANALES TEMPORALES
+├── ➕ Crear Canal
+├── 🎛️-voice-controls
+├── 🎮 Gaming General
+├── 🎯 Competitivo
+├── 😎 Casual
+└── 🎊 Party
 ```
 
-## 🎯 COMANDOS DISPONIBLES AHORA
+### Características Especiales:
+- Canales especializados para gaming
+- Sistema de equipos y torneos
+- VoiceMaster configurado automáticamente
+- Verificación anti-bot activa
 
-### 🔞 **NSFW (Solo canales NSFW)**
-- `/waifu`, `/neko`, `/nekotina`, `/trap`
-- `/ahegao`, `/yuri`, `/blowjob`, `/hentai`
-- `/nsfw-random`
+---
 
-### ⚙️ **Configuración**
-- `/setup` - Auto-configuración
-- `/serverconfig` - Configuración manual avanzada
-- `/botconfig` - Configuración general del bot  
-- `/viewconfig` - Ver configuración YAML
+## 🌟 Plantilla Comunidad
 
-### 🎮 **Todos los comandos existentes**
-- Moderación, música, diversión, niveles, tickets, etc.
-- Ahora todos usan la configuración persistente
+### Estructura de Canales:
+```
+🛡️ VERIFICACIÓN
+├── 🔐-verificacion
 
-## 🚀 FLUJO DE USO RECOMENDADO
+📋 INFORMACIÓN
+├── 📜-reglas
+└── 📢-anuncios
 
-### **Para servidores nuevos:**
-1. 🤖 El bot se añade al servidor
-2. 📧 Envía mensaje de bienvenida automático
-3. 🔍 Detecta canales y roles automáticamente
-4. ⚙️ Admin usa `/setup` para confirmar configuración
-5. 🎯 Opcionalmente usar `/serverconfig` para ajustes específicos
+🌟 COMUNIDAD
+├── 💬-chat-general
+├── 🎨-arte-y-creatividad
+├── 📸-fotos
+└── 🤖-bot-commands
 
-### **Para configuración avanzada:**
-1. 📝 `/serverconfig channels welcome #bienvenidas`
-2. 👑 `/serverconfig roles mod @Moderadores`  
-3. ⚙️ `/serverconfig settings prefix !`
-4. 🛡️ `/serverconfig automod anti_spam:True`
-5. 👀 `/serverconfig view` para verificar
+🎫 SOPORTE
+├── 🎫-crear-ticket
+└── 📝-transcripciones
 
-## 📊 BENEFICIOS DEL NUEVO SISTEMA
+🎙️ CANALES DE VOZ
+├── ➕ Crear Canal
+├── 🎛️-voice-controls
+├── 💬 Chat General
+└── 🎵 Música
+```
 
-### ✅ **Para Usuarios:**
-- 🚀 **Configuración automática** - El bot funciona inmediatamente
-- 💾 **Persistencia total** - No se pierde configuración al reiniciar
-- 🎯 **Configuración por servidor** - Cada servidor es independiente
-- 🔧 **Flexibilidad completa** - Configuración automática + manual
+### Características Especiales:
+- Enfoque en creatividad y arte
+- Canales para compartir contenido
+- Ambiente colaborativo
+- Sistemas de soporte integrados
 
-### ✅ **Para Desarrolladores:**
-- 🗄️ **Base de datos integrada** - Sistema robusto de almacenamiento
-- 🔄 **Compatibilidad híbrida** - No rompe configuración existente
-- 🛡️ **Sistema de fallback** - Resistente a errores
-- 📈 **Escalabilidad** - Soporta miles de servidores
+---
 
-## 🎊 RESULTADO FINAL
+## 📚 Plantilla Estudio
 
-¡El bot ahora es completamente autónomo y se configura automáticamente en cada servidor! Los usuarios pueden simplemente añadir el bot y comenzar a usarlo inmediatamente, mientras que los administradores tienen control total sobre cada aspecto de la configuración.
+### Estructura de Canales:
+```
+🛡️ VERIFICACIÓN
+├── 🔐-verificacion
 
-**🎯 Todo funciona desde Discord, nada de interfaces web, y la configuración se mantiene para siempre.**
+📚 INFORMACIÓN ACADÉMICA
+├── 📜-reglas-del-servidor
+└── 📅-calendario-academico
+
+📖 ESTUDIO GENERAL
+├── 💬-chat-general
+├── ❓-preguntas-y-dudas
+├── 📚-recursos-de-estudio
+└── 🤝-grupos-de-estudio
+
+📝 MATERIAS ESPECÍFICAS
+├── 🔢-matematicas
+├── 🧪-ciencias
+├── 🌍-historia-geografia
+└── 📖-lengua-literatura
+
+🎫 APOYO ACADÉMICO
+├── 🎫-solicitar-ayuda
+└── 📝-registros-de-ayuda
+
+🎙️ SALAS DE ESTUDIO
+├── ➕ Crear Sala de Estudio
+├── 🎛️-control-de-salas
+├── 📚 Sala de Estudio Silenciosa
+├── 💭 Discusión Académica
+└── 🤝 Trabajo en Grupo
+```
+
+### Características Especiales:
+- Canales organizados por materias
+- Sistema de apoyo académico
+- Salas de estudio virtuales
+- Calendario académico integrado
+
+---
+
+## 🎛️ VoiceMaster - Controles Avanzados
+
+### Panel de Control:
+1. **🔒 Privado** - Solo tú puedes invitar usuarios
+2. **🔓 Público** - Cualquiera puede unirse
+3. **👥 Límite** - Cambiar límite de usuarios (0-99)
+4. **🎵 Bitrate** - Mejorar calidad de audio (8-384 kbps)
+5. **📝 Renombrar** - Cambiar nombre del canal
+6. **👤 Transferir** - Dar ownership a otro usuario
+7. **🚫 Banear** - Prohibir usuarios específicos
+8. **✅ Permitir** - Permitir usuarios específicos
+
+### Características:
+- **Creación automática**: Al unirse al canal "➕ Crear Canal"
+- **Eliminación automática**: Cuando el canal queda vacío
+- **Transferencia automática**: Si el owner se va
+- **Base de datos persistente**: Registro de todos los canales temporales
+
+---
+
+## 🎫 Sistema de Tickets Mejorado
+
+### Funcionalidades de Transcripciones:
+- **Guardado automático**: Cada ticket se guarda completo
+- **Canal dedicado**: Transcripciones en canal específico
+- **Formato organizado**: Fecha, participantes, duración
+- **Base de datos**: Almacenamiento persistente de historial
+- **Búsqueda**: Localización rápida de tickets antiguos
+
+### Configuración de Base de Datos:
+```sql
+-- Tabla de tickets
+tickets (
+    id INTEGER PRIMARY KEY,
+    guild_id INTEGER,
+    channel_id INTEGER, 
+    user_id INTEGER,
+    created_at TIMESTAMP,
+    closed_at TIMESTAMP,
+    status TEXT
+)
+
+-- Tabla de transcripciones
+transcripts (
+    id INTEGER PRIMARY KEY,
+    ticket_id INTEGER,
+    content TEXT,
+    created_at TIMESTAMP,
+    file_path TEXT
+)
+```
+
+---
+
+## 🛡️ Sistema de Verificación
+
+### Proceso de Verificación:
+1. **Usuario nuevo** se une al servidor
+2. **Acceso limitado** - Solo puede ver canal de verificación
+3. **Clic en botón** "🔘 Verificarme"
+4. **Verificación automática** - Checks anti-bot
+5. **Rol asignado** - "✅ Verificado"
+6. **Acceso completo** - Todos los canales disponibles
+
+### Medidas de Seguridad:
+- Verificación de edad de cuenta
+- Detección de patrones de bot
+- Rate limiting para prevenir spam
+- Logs de actividad de verificación
+
+---
+
+## 📁 Archivos y Estructura
+
+### Nuevos Módulos:
+- `modules/voicemaster.py` - Sistema VoiceMaster completo
+- `modules/server_templates.py` - Plantillas de servidor
+- `modules/ticket_system.py` - Sistema de tickets mejorado (actualizado)
+
+### Bases de Datos:
+- `data/voicemaster.db` - Configuración y canales temporales
+- `data/tickets.db` - Tickets y transcripciones
+- `data/verification.db` - Registros de verificación
+
+### Comandos Principales:
+
+#### Plantillas:
+- `/template gaming` - Crear servidor gaming completo
+- `/template community` - Crear servidor de comunidad
+- `/template study` - Crear servidor de estudio
+
+#### VoiceMaster:
+- `/voicemaster setup` - Configurar sistema VoiceMaster
+- Panel de control interactivo con 8 botones
+
+#### Tickets:
+- `/ticket setup` - Configurar sistema completo
+- Panel de creación de tickets
+- Transcripciones automáticas
+
+---
+
+## 🚀 Instrucciones de Uso
+
+### Para Administradores:
+
+1. **Configurar Servidor Completo:**
+   ```
+   /template gaming    # Para servidor gaming
+   /template community # Para comunidad general  
+   /template study     # Para servidor de estudio
+   ```
+
+2. **Configurar Sistemas Individuales:**
+   ```
+   /voicemaster setup  # Solo VoiceMaster
+   /ticket setup       # Solo sistema de tickets
+   ```
+
+### Para Usuarios:
+
+1. **Verificarse:**
+   - Ir al canal 🔐-verificacion
+   - Hacer clic en "🔘 Verificarme"
+
+2. **Crear Canal de Voz:**
+   - Unirse al canal "➕ Crear Canal"
+   - Usar panel de control para gestionar
+
+3. **Crear Ticket:**
+   - Ir al canal de tickets
+   - Hacer clic en "🎫 Crear Ticket"
+
+---
+
+## 🎯 Beneficios de las Nuevas Funcionalidades
+
+### Para Administradores:
+- **Setup instantáneo** - Servidor completo en minutos
+- **Gestión automatizada** - Menos trabajo manual
+- **Transcripciones completas** - Historial de soporte
+- **Seguridad mejorada** - Protección anti-bot
+
+### Para Usuarios:
+- **Canales personalizados** - VoiceMaster con control total
+- **Soporte eficiente** - Sistema de tickets mejorado
+- **Acceso organizado** - Verificación clara y rápida
+- **Experiencia mejorada** - Interfaces intuitivas
+
+### Para la Comunidad:
+- **Servidores organizados** - Estructura clara
+- **Comunicación fluida** - Canales especializados
+- **Moderación eficiente** - Herramientas avanzadas
+- **Crecimiento sostenible** - Sistemas escalables
+
+---
+
+## 🔧 Configuración Técnica
+
+### Dependencias Nuevas:
+```python
+# VoiceMaster
+import sqlite3
+from datetime import datetime
+
+# UI Components
+import nextcord.ui
+from nextcord.ext import commands
+
+# Sistema de archivos
+import os
+import asyncio
+```
+
+### Permisos Requeridos:
+- `manage_channels` - Para crear/editar canales
+- `manage_roles` - Para asignar roles de verificación  
+- `manage_messages` - Para gestionar tickets
+- `move_members` - Para VoiceMaster
+- `administrator` - Para setup completo (recomendado)
+
+---
+
+## 🎊 ¡DaBot v2 Está Listo!
+
+Con estas nuevas funcionalidades, DaBot v2 se convierte en la solución completa para gestión de servidores Discord, ofreciendo:
+
+✅ **Automatización completa** de configuración de servidores
+✅ **Sistemas integrados** que trabajan en conjunto  
+✅ **Interfaz intuitiva** para usuarios y administradores
+✅ **Escalabilidad** para servidores de cualquier tamaño
+✅ **Seguridad avanzada** con verificación anti-bot
+✅ **Funcionalidades únicas** como VoiceMaster y transcripciones
+
+**¡Tu servidor Discord nunca fue tan fácil de gestionar!** 🚀

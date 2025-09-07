@@ -215,6 +215,13 @@ async def main():
             # Módulos de utilidad
             ("VoiceMaster", "modules.voicemaster", "voicemaster"),
             ("TicketManager", "modules.ticket_system", "tickets"),
+            ("ServerTemplates", "modules.server_templates", None),  # Siempre disponible
+            ("EconomyAdvanced", "modules.economy_advanced", "economy"),
+            ("MemesAndFun", "modules.memes_and_fun", "fun"),
+            ("Confessions", "modules.confessions", "confessions"),
+            ("ServerStats", "modules.server_stats", "stats"),
+            ("AdminCommands", "modules.admin_commands", None),  # Comandos administrativos
+            ("HelpSystem", "modules.help_system", None),  # Sistema de ayuda completo
             ("Welcome", "modules.welcome", "welcome"),
             ("Levels", "modules.levels", "levels"),
             ("LevelSystem", "modules.level_system", "levels"),

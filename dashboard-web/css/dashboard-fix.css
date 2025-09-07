@@ -1,0 +1,185 @@
+/* Estilos de corrección para dashboard simple */
+/* Asegurar visibilidad de texto y elementos */
+
+/* Override para asegurar contraste */
+.dashboard-body {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    min-height: 100vh;
+}
+
+/* Sidebar corregido */
+.sidebar {
+    background-color: rgba(30, 30, 30, 0.95) !important;
+    color: #ffffff !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sidebar .nav-link {
+    color: #b9bbbe !important;
+    transition: color 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    color: #5865f2 !important;
+}
+
+.sidebar .nav-link.active {
+    color: #5865f2 !important;
+    background-color: rgba(88, 101, 242, 0.1);
+}
+
+/* Header principal */
+.dashboard-header {
+    background-color: rgba(45, 45, 45, 0.95) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Contenido principal */
+.main-content {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+/* Cards y contenedores */
+.card, .stat-card, .activity-card {
+    background-color: rgba(45, 45, 45, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+}
+
+/* Botones */
+.btn {
+    background-color: #5865f2 !important;
+    color: #ffffff !important;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #4752c4 !important;
+}
+
+.btn-ghost {
+    background-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+}
+
+.btn-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Forms y inputs */
+.form-select, .form-input {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.form-select:focus, .form-input:focus {
+    border-color: #5865f2 !important;
+    box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2) !important;
+}
+
+/* Status indicators */
+.status-indicator.online {
+    color: #57f287 !important;
+}
+
+.status-indicator.offline {
+    color: #ed4245 !important;
+}
+
+/* Stats */
+.stat-number {
+    color: #5865f2 !important;
+    font-weight: bold;
+}
+
+.stat-label {
+    color: #b9bbbe !important;
+}
+
+/* Activity items */
+.activity-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+
+/* Badges */
+.badge {
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+.badge-warning {
+    background-color: #fee75c !important;
+    color: #000000 !important;
+}
+
+.badge-error {
+    background-color: #ed4245 !important;
+    color: #ffffff !important;
+}
+
+.badge-success {
+    background-color: #57f287 !important;
+    color: #000000 !important;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    background-color: rgba(26, 26, 26, 0.9) !important;
+    color: #ffffff !important;
+}
+
+/* Error container */
+.error-container {
+    color: #ed4245 !important;
+}
+
+/* Mobile fixes */
+@media (max-width: 768px) {
+    .sidebar.mobile-open {
+        background-color: rgba(30, 30, 30, 0.98) !important;
+    }
+    
+    .dashboard-header {
+        background-color: rgba(45, 45, 45, 0.98) !important;
+    }
+}
+
+/* Ensure text is always visible */
+* {
+    color: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+}
+
+p, span, div {
+    color: inherit;
+}
+
+/* Footer fix */
+.sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff !important;
+}
+
+.user-info-sidebar {
+    color: #ffffff !important;
+}
+
+/* Section titles */
+.section-title {
+    color: #ffffff !important;
+    border-bottom: 2px solid #5865f2;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}

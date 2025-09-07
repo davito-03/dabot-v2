@@ -1,0 +1,13 @@
+{
+  "1413959468365905962": {
+    "enabled": true,
+    "xp_per_message": {
+      "min": 15,
+      "max": 25
+    },
+    "xp_cooldown": 60,
+    "level_up_channel": null,
+    "level_roles": {},
+    "xp_multiplier": 1.0
+  }
+}

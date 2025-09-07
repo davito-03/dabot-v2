@@ -53,12 +53,23 @@ class ServerSetupWizard(commands.Cog):
                 "description": "Configuración perfecta para la comunidad de un streamer",
                 "categories": [
                     {
-                        "name": "📋 INFORMACIÓN",
+                        "name": "�️ STAFF",
+                        "channels": [
+                            {"name": "👮┃staff-chat", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
+                            {"name": "🤖┃comandos-staff", "type": "text", "topic": "Comandos exclusivos del staff", "staff_only": True},
+                            {"name": "🔓┃desbaneos", "type": "text", "topic": "Solicitudes de desbaneo", "staff_only": True},
+                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "�📋 INFORMACIÓN",
                         "channels": [
                             {"name": "👋┃bienvenida", "type": "text", "topic": "¡Bienvenidos a la comunidad!"},
-                            {"name": "📖┃reglas", "type": "text", "topic": "Normas del servidor"},
+                            {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios importantes"},
-                            {"name": "🎉┃eventos", "type": "text", "topic": "Eventos y sorteos"}
+                            {"name": "🎉┃eventos", "type": "text", "topic": "Eventos y sorteos"},
+                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     },
                     {
@@ -67,6 +78,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "💬┃general", "type": "text", "topic": "Chat general de la comunidad"},
                             {"name": "🔗┃links-y-clips", "type": "text", "topic": "Comparte clips y links del stream"},
                             {"name": "🎨┃fanart", "type": "text", "topic": "Arte creado por la comunidad"},
+                            {"name": "😂┃memes", "type": "text", "topic": "Memes y humor"},
                             {"name": "🤖┃comandos-bot", "type": "text", "topic": "Usa comandos del bot aquí"}
                         ]
                     },
@@ -89,12 +101,13 @@ class ServerSetupWizard(commands.Cog):
                         ]
                     },
                     {
-                        "name": "🛠️ STAFF",
+                        "name": "� LOGS",
                         "channels": [
-                            {"name": "👮┃staff-chat", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
-                            {"name": "📊┃logs", "type": "text", "topic": "Logs de moderación", "staff_only": True},
-                            {"name": "🎫┃tickets", "type": "text", "topic": "Sistema de tickets"},
-                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                            {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
+                            {"name": "🚪┃entradas-salidas", "type": "text", "topic": "Log de usuarios entrando/saliendo", "staff_only": True},
+                            {"name": "�┃mensajes-logs", "type": "text", "topic": "Log de mensajes editados/eliminados", "staff_only": True},
+                            {"name": "🤖┃acciones-bot", "type": "text", "topic": "Log de acciones y sanciones del bot", "staff_only": True},
+                            {"name": "�┃voice-logs", "type": "text", "topic": "Log de entradas/salidas de voice", "staff_only": True}
                         ]
                     }
                 ],
@@ -115,12 +128,24 @@ class ServerSetupWizard(commands.Cog):
                 "description": "Configuración para servidor de gaming general",
                 "categories": [
                     {
-                        "name": "📋 INFORMACIÓN",
+                        "name": "�️ STAFF",
+                        "channels": [
+                            {"name": "👮┃mod-chat", "type": "text", "topic": "Chat de moderadores", "staff_only": True},
+                            {"name": "🤖┃comandos-staff", "type": "text", "topic": "Comandos exclusivos del staff", "staff_only": True},
+                            {"name": "🔓┃desbaneos", "type": "text", "topic": "Solicitudes de desbaneo", "staff_only": True},
+                            {"name": "🔧 Mod Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "�📋 INFORMACIÓN",
                         "channels": [
                             {"name": "👋┃bienvenida", "type": "text", "topic": "¡Bienvenidos gamers!"},
-                            {"name": "📖┃reglas", "type": "text", "topic": "Normas del servidor"},
+                            {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios y novedades"},
-                            {"name": "🆕┃novedades-gaming", "type": "text", "topic": "Últimas noticias del gaming"}
+                            {"name": "🆕┃novedades-gaming", "type": "text", "topic": "Últimas noticias del gaming"},
+                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📊┃estadísticas", "type": "text", "topic": "Estadísticas del servidor"},
+                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     },
                     {
@@ -130,6 +155,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "🎮┃gaming-talk", "type": "text", "topic": "Habla sobre videojuegos"},
                             {"name": "🏆┃logros", "type": "text", "topic": "Comparte tus logros"},
                             {"name": "📷┃screenshots", "type": "text", "topic": "Screenshots y clips épicos"},
+                            {"name": "😂┃memes", "type": "text", "topic": "Memes gaming"},
                             {"name": "🤖┃bot-commands", "type": "text", "topic": "Comandos del bot"}
                         ]
                     },
@@ -156,21 +182,13 @@ class ServerSetupWizard(commands.Cog):
                         ]
                     },
                     {
-                        "name": "🛠️ MODERACIÓN",
+                        "name": "� LOGS",
                         "channels": [
-                            {"name": "👮┃mod-chat", "type": "text", "topic": "Chat de moderadores", "staff_only": True},
-                            {"name": "📊┃logs", "type": "text", "topic": "Logs del servidor", "staff_only": True},
-                            {"name": "🎫┃tickets", "type": "text", "topic": "Sistema de soporte"},
-                            {"name": "🔧 Mod Voice", "type": "voice", "limit": 5, "staff_only": True}
-                        ]
-                    },
-                    {
-                        "name": "📊 ESTADÍSTICAS & INFORMACIÓN",
-                        "channels": [
-                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
-                            {"name": "📊┃estadísticas", "type": "text", "topic": "Estadísticas del servidor"},
-                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"},
-                            {"name": "🎯┃logros", "type": "text", "topic": "Logros y reconocimientos"}
+                            {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
+                            {"name": "�┃entradas-salidas", "type": "text", "topic": "Log de usuarios entrando/saliendo", "staff_only": True},
+                            {"name": "💬┃mensajes-logs", "type": "text", "topic": "Log de mensajes editados/eliminados", "staff_only": True},
+                            {"name": "🤖┃acciones-bot", "type": "text", "topic": "Log de acciones y sanciones del bot", "staff_only": True},
+                            {"name": "�┃voice-logs", "type": "text", "topic": "Log de entradas/salidas de voice", "staff_only": True}
                         ]
                     }
                 ],
@@ -192,12 +210,23 @@ class ServerSetupWizard(commands.Cog):
                 "description": "Configuración para comunidad de desarrolladores",
                 "categories": [
                     {
-                        "name": "📋 INFORMACIÓN",
+                        "name": "�️ STAFF",
+                        "channels": [
+                            {"name": "👮┃staff-chat", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
+                            {"name": "🤖┃comandos-staff", "type": "text", "topic": "Comandos exclusivos del staff", "staff_only": True},
+                            {"name": "🔓┃desbaneos", "type": "text", "topic": "Solicitudes de desbaneo", "staff_only": True},
+                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "�📋 INFORMACIÓN",
                         "channels": [
                             {"name": "👋┃bienvenida", "type": "text", "topic": "¡Bienvenidos desarrolladores!"},
-                            {"name": "📖┃reglas", "type": "text", "topic": "Normas del servidor"},
+                            {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios importantes"},
-                            {"name": "📚┃recursos", "type": "text", "topic": "Recursos útiles para developers"}
+                            {"name": "📚┃recursos", "type": "text", "topic": "Recursos útiles para developers"},
+                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     },
                     {
@@ -207,6 +236,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "☕┃random", "type": "text", "topic": "Chat random y off-topic"},
                             {"name": "💼┃trabajos", "type": "text", "topic": "Ofertas de trabajo y freelance"},
                             {"name": "🎉┃logros", "type": "text", "topic": "Comparte tus proyectos"},
+                            {"name": "😂┃memes", "type": "text", "topic": "Memes de programación"},
                             {"name": "🤖┃bot-commands", "type": "text", "topic": "Comandos del bot"}
                         ]
                     },
@@ -242,12 +272,13 @@ class ServerSetupWizard(commands.Cog):
                         ]
                     },
                     {
-                        "name": "🛠️ STAFF",
+                        "name": "� LOGS",
                         "channels": [
-                            {"name": "👮┃staff-chat", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
-                            {"name": "📊┃logs", "type": "text", "topic": "Logs del servidor", "staff_only": True},
-                            {"name": "🎫┃tickets", "type": "text", "topic": "Sistema de soporte"},
-                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                            {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
+                            {"name": "🚪┃entradas-salidas", "type": "text", "topic": "Log de usuarios entrando/saliendo", "staff_only": True},
+                            {"name": "�┃mensajes-logs", "type": "text", "topic": "Log de mensajes editados/eliminados", "staff_only": True},
+                            {"name": "🤖┃acciones-bot", "type": "text", "topic": "Log de acciones y sanciones del bot", "staff_only": True},
+                            {"name": "�┃voice-logs", "type": "text", "topic": "Log de entradas/salidas de voice", "staff_only": True}
                         ]
                     }
                 ],
@@ -270,12 +301,24 @@ class ServerSetupWizard(commands.Cog):
                 "description": "Configuración para comunidad general y social",
                 "categories": [
                     {
-                        "name": "📋 INFORMACIÓN",
+                        "name": "�️ STAFF",
+                        "channels": [
+                            {"name": "👮┃staff-only", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
+                            {"name": "🤖┃comandos-staff", "type": "text", "topic": "Comandos exclusivos del staff", "staff_only": True},
+                            {"name": "🔓┃desbaneos", "type": "text", "topic": "Solicitudes de desbaneo", "staff_only": True},
+                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "�📋 INFORMACIÓN",
                         "channels": [
                             {"name": "👋┃bienvenida", "type": "text", "topic": "¡Bienvenidos a la comunidad!"},
-                            {"name": "📖┃reglas", "type": "text", "topic": "Normas del servidor"},
+                            {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios importantes"},
-                            {"name": "🎉┃eventos", "type": "text", "topic": "Eventos de la comunidad"}
+                            {"name": "🎉┃eventos", "type": "text", "topic": "Eventos de la comunidad"},
+                            {"name": "🎉┃anuncios-nivel", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📈┃stats", "type": "text", "topic": "Estadísticas de la comunidad"},
+                            {"name": "📋┃info", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     },
                     {
@@ -285,6 +328,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "☕┃charla-casual", "type": "text", "topic": "Conversaciones casuales"},
                             {"name": "📷┃fotos-y-media", "type": "text", "topic": "Comparte fotos y videos"},
                             {"name": "🔗┃links-interesantes", "type": "text", "topic": "Links y contenido interesante"},
+                            {"name": "😂┃memes", "type": "text", "topic": "Memes y humor"},
                             {"name": "🤖┃bot-zone", "type": "text", "topic": "Zona para comandos de bot"}
                         ]
                     },
@@ -310,20 +354,13 @@ class ServerSetupWizard(commands.Cog):
                         ]
                     },
                     {
-                        "name": "🛠️ STAFF",
+                        "name": "� LOGS",
                         "channels": [
-                            {"name": "👮┃staff-only", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
-                            {"name": "📊┃mod-logs", "type": "text", "topic": "Logs de moderación", "staff_only": True},
-                            {"name": "🎫┃soporte", "type": "text", "topic": "Sistema de soporte"},
-                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
-                        ]
-                    },
-                    {
-                        "name": "📊 ESTADÍSTICAS & INFO",
-                        "channels": [
-                            {"name": "🎉┃anuncios-nivel", "type": "text", "topic": "Anuncios de subida de nivel"},
-                            {"name": "📈┃stats", "type": "text", "topic": "Estadísticas de la comunidad"},
-                            {"name": "📋┃info", "type": "text", "topic": "Información e invitaciones del servidor"}
+                            {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
+                            {"name": "�┃entradas-salidas", "type": "text", "topic": "Log de usuarios entrando/saliendo", "staff_only": True},
+                            {"name": "💬┃mensajes-logs", "type": "text", "topic": "Log de mensajes editados/eliminados", "staff_only": True},
+                            {"name": "🤖┃acciones-bot", "type": "text", "topic": "Log de acciones y sanciones del bot", "staff_only": True},
+                            {"name": "�┃voice-logs", "type": "text", "topic": "Log de entradas/salidas de voice", "staff_only": True}
                         ]
                     }
                 ],
@@ -337,6 +374,256 @@ class ServerSetupWizard(commands.Cog):
                     {"name": "🎵 Músico", "color": 0x9b59b6, "permissions": [], "hoist": False},
                     {"name": "📚 Lector", "color": 0x2ecc71, "permissions": [], "hoist": False},
                     {"name": "🔇 Silenciado", "color": 0x95a5a6, "permissions": [], "hoist": False}
+                ]
+            },
+            
+            "music": {
+                "name": "🎵 Servidor de Música",
+                "description": "Configuración para comunidades de música y artistas",
+                "categories": [
+                    {
+                        "name": "🛠️ STAFF",
+                        "channels": [
+                            {"name": "👮┃staff-chat", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
+                            {"name": "🤖┃comandos-staff", "type": "text", "topic": "Comandos exclusivos del staff", "staff_only": True},
+                            {"name": "🔓┃desbaneos", "type": "text", "topic": "Solicitudes de desbaneo", "staff_only": True},
+                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "📋 INFORMACIÓN",
+                        "channels": [
+                            {"name": "👋┃bienvenida", "type": "text", "topic": "¡Bienvenidos melómanos!"},
+                            {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
+                            {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios y novedades musicales"},
+                            {"name": "🎤┃eventos-musicales", "type": "text", "topic": "Eventos y conciertos"},
+                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
+                        ]
+                    },
+                    {
+                        "name": "🎵 MÚSICA",
+                        "channels": [
+                            {"name": "🎵┃música-general", "type": "text", "topic": "Habla sobre música en general"},
+                            {"name": "🔥┃nuevos-lanzamientos", "type": "text", "topic": "Últimos lanzamientos musicales"},
+                            {"name": "💿┃recomendaciones", "type": "text", "topic": "Recomienda música nueva"},
+                            {"name": "🎧┃playlists", "type": "text", "topic": "Comparte tus playlists"},
+                            {"name": "🎸┃instrumentos", "type": "text", "topic": "Todo sobre instrumentos"},
+                            {"name": "😂┃memes-musicales", "type": "text", "topic": "Memes de música"}
+                        ]
+                    },
+                    {
+                        "name": "🎨 CREACIÓN",
+                        "channels": [
+                            {"name": "🎼┃mis-creaciones", "type": "text", "topic": "Comparte tu música original"},
+                            {"name": "🎚️┃producción", "type": "text", "topic": "Producción musical y software"},
+                            {"name": "🎤┃covers", "type": "text", "topic": "Covers y versiones"},
+                            {"name": "📝┃letras", "type": "text", "topic": "Escritura de letras y poesía"},
+                            {"name": "🤝┃colaboraciones", "type": "text", "topic": "Busca colaboraciones musicales"}
+                        ]
+                    },
+                    {
+                        "name": "🔊 VOICE & MÚSICA",
+                        "channels": [
+                            {"name": "🎤 Lobby Musical", "type": "voice", "limit": 0},
+                            {"name": "🎵 Sala de Música 1", "type": "voice", "limit": 8},
+                            {"name": "🎵 Sala de Música 2", "type": "voice", "limit": 8},
+                            {"name": "🎸 Jam Session", "type": "voice", "limit": 6},
+                            {"name": "🎤 Karaoke", "type": "voice", "limit": 10},
+                            {"name": "🔒 Estudio Privado", "type": "voice", "limit": 4}
+                        ]
+                    },
+                    {
+                        "name": "🔍 LOGS",
+                        "channels": [
+                            {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
+                            {"name": "🚪┃entradas-salidas", "type": "text", "topic": "Log de usuarios entrando/saliendo", "staff_only": True},
+                            {"name": "💬┃mensajes-logs", "type": "text", "topic": "Log de mensajes editados/eliminados", "staff_only": True},
+                            {"name": "🤖┃acciones-bot", "type": "text", "topic": "Log de acciones y sanciones del bot", "staff_only": True},
+                            {"name": "🔊┃voice-logs", "type": "text", "topic": "Log de entradas/salidas de voice", "staff_only": True}
+                        ]
+                    }
+                ],
+                "roles": [
+                    {"name": "👑 Owner", "color": 0xff0000, "permissions": ["administrator"], "hoist": True},
+                    {"name": "🛡️ Admin", "color": 0xff6b6b, "permissions": ["manage_guild", "manage_channels"], "hoist": True},
+                    {"name": "🔨 Moderador", "color": 0x4ecdc4, "permissions": ["manage_messages", "kick_members"], "hoist": True},
+                    {"name": "🎵 Artista Verificado", "color": 0xf1c40f, "permissions": [], "hoist": True},
+                    {"name": "🎤 Vocalista", "color": 0xe74c3c, "permissions": [], "hoist": False},
+                    {"name": "🎸 Instrumentista", "color": 0x9b59b6, "permissions": [], "hoist": False},
+                    {"name": "🎧 Productor", "color": 0x3498db, "permissions": [], "hoist": False},
+                    {"name": "🎼 Compositor", "color": 0xe67e22, "permissions": [], "hoist": False},
+                    {"name": "🎵 Melómano", "color": 0x2ecc71, "permissions": [], "hoist": False}
+                ]
+            },
+            
+            "anime": {
+                "name": "🌸 Servidor de Anime",
+                "description": "Configuración para comunidades otaku y anime",
+                "categories": [
+                    {
+                        "name": "🛠️ STAFF",
+                        "channels": [
+                            {"name": "👮┃staff-chat", "type": "text", "topic": "Chat privado del staff", "staff_only": True},
+                            {"name": "🤖┃comandos-staff", "type": "text", "topic": "Comandos exclusivos del staff", "staff_only": True},
+                            {"name": "🔓┃desbaneos", "type": "text", "topic": "Solicitudes de desbaneo", "staff_only": True},
+                            {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "📋 INFORMACIÓN",
+                        "channels": [
+                            {"name": "👋┃bienvenida", "type": "text", "topic": "¡Bienvenidos otakus!"},
+                            {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
+                            {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios y novedades anime"},
+                            {"name": "🗓️┃calendario-anime", "type": "text", "topic": "Calendario de estrenos anime"},
+                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
+                        ]
+                    },
+                    {
+                        "name": "🌸 ANIME & MANGA",
+                        "channels": [
+                            {"name": "🌸┃anime-general", "type": "text", "topic": "Chat general sobre anime"},
+                            {"name": "📚┃manga", "type": "text", "topic": "Todo sobre manga"},
+                            {"name": "🆕┃nuevos-animes", "type": "text", "topic": "Animes recién estrenados"},
+                            {"name": "⭐┃recomendaciones", "type": "text", "topic": "Recomienda anime y manga"},
+                            {"name": "💬┃opiniones", "type": "text", "topic": "Reseñas y opiniones"},
+                            {"name": "😂┃memes-otaku", "type": "text", "topic": "Memes de anime"}
+                        ]
+                    },
+                    {
+                        "name": "🎨 CONTENIDO",
+                        "channels": [
+                            {"name": "🎨┃fanart", "type": "text", "topic": "Arte de anime y manga"},
+                            {"name": "📱┃wallpapers", "type": "text", "topic": "Fondos de pantalla anime"},
+                            {"name": "🔗┃clips-videos", "type": "text", "topic": "Clips y videos de anime"},
+                            {"name": "🎵┃openings-endings", "type": "text", "topic": "OPs y EDs favoritos"},
+                            {"name": "🛍️┃merchandise", "type": "text", "topic": "Figuras y mercancía"}
+                        ]
+                    },
+                    {
+                        "name": "🎮 JUEGOS ANIME",
+                        "channels": [
+                            {"name": "🎮┃juegos-anime", "type": "text", "topic": "Videojuegos de anime"},
+                            {"name": "📱┃gacha-games", "type": "text", "topic": "Juegos gacha"},
+                            {"name": "🎲┃otros-juegos", "type": "text", "topic": "Otros juegos otaku"}
+                        ]
+                    },
+                    {
+                        "name": "🔊 VOICE",
+                        "channels": [
+                            {"name": "🎤 Lobby Otaku", "type": "voice", "limit": 0},
+                            {"name": "🌸 Sala Anime 1", "type": "voice", "limit": 6},
+                            {"name": "🌸 Sala Anime 2", "type": "voice", "limit": 6},
+                            {"name": "🎮 Gaming Otaku", "type": "voice", "limit": 5},
+                            {"name": "📺 Watch Party", "type": "voice", "limit": 10},
+                            {"name": "🔒 Privado", "type": "voice", "limit": 2}
+                        ]
+                    },
+                    {
+                        "name": "🔍 LOGS",
+                        "channels": [
+                            {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
+                            {"name": "🚪┃entradas-salidas", "type": "text", "topic": "Log de usuarios entrando/saliendo", "staff_only": True},
+                            {"name": "💬┃mensajes-logs", "type": "text", "topic": "Log de mensajes editados/eliminados", "staff_only": True},
+                            {"name": "🤖┃acciones-bot", "type": "text", "topic": "Log de acciones y sanciones del bot", "staff_only": True},
+                            {"name": "🔊┃voice-logs", "type": "text", "topic": "Log de entradas/salidas de voice", "staff_only": True}
+                        ]
+                    }
+                ],
+                "roles": [
+                    {"name": "👑 Owner", "color": 0xff0000, "permissions": ["administrator"], "hoist": True},
+                    {"name": "🛡️ Admin", "color": 0xff6b6b, "permissions": ["manage_guild", "manage_channels"], "hoist": True},
+                    {"name": "🔨 Moderador", "color": 0x4ecdc4, "permissions": ["manage_messages", "kick_members"], "hoist": True},
+                    {"name": "🌸 Otaku Supremo", "color": 0xf1c40f, "permissions": [], "hoist": True},
+                    {"name": "📚 Manga Reader", "color": 0x9b59b6, "permissions": [], "hoist": False},
+                    {"name": "🎌 Anime Expert", "color": 0xe74c3c, "permissions": [], "hoist": False},
+                    {"name": "🎨 Artist", "color": 0x3498db, "permissions": [], "hoist": False},
+                    {"name": "🎮 Gamer Otaku", "color": 0xe67e22, "permissions": [], "hoist": False},
+                    {"name": "🌱 Newbie Otaku", "color": 0x2ecc71, "permissions": [], "hoist": False}
+                ]
+            },
+            
+            "esports": {
+                "name": "🏆 Equipo Esports",
+                "description": "Configuración para equipos y organizaciones de esports",
+                "categories": [
+                    {
+                        "name": "🛠️ MANAGEMENT",
+                        "channels": [
+                            {"name": "👑┃management", "type": "text", "topic": "Chat de dirección", "staff_only": True},
+                            {"name": "💼┃business", "type": "text", "topic": "Asuntos comerciales", "staff_only": True},
+                            {"name": "🤖┃comandos-staff", "type": "text", "topic": "Comandos exclusivos del staff", "staff_only": True},
+                            {"name": "🔓┃desbaneos", "type": "text", "topic": "Solicitudes de desbaneo", "staff_only": True},
+                            {"name": "🔧 Management Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "📋 INFORMACIÓN",
+                        "channels": [
+                            {"name": "👋┃bienvenida", "type": "text", "topic": "¡Bienvenidos al equipo!"},
+                            {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
+                            {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios oficiales"},
+                            {"name": "🏆┃resultados", "type": "text", "topic": "Resultados de partidas"},
+                            {"name": "📅┃calendario", "type": "text", "topic": "Calendario de eventos"},
+                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
+                        ]
+                    },
+                    {
+                        "name": "⚔️ COMPETITIVO",
+                        "channels": [
+                            {"name": "🎮┃estrategias", "type": "text", "topic": "Estrategias y tácticas"},
+                            {"name": "📊┃análisis", "type": "text", "topic": "Análisis de partidas"},
+                            {"name": "🎯┃entrenamientos", "type": "text", "topic": "Sesiones de práctica"},
+                            {"name": "🔥┃scrims", "type": "text", "topic": "Scrimmages y entrenamientos"},
+                            {"name": "📺┃vods", "type": "text", "topic": "VODs y replays"},
+                            {"name": "😂┃memes-esports", "type": "text", "topic": "Memes y humor"}
+                        ]
+                    },
+                    {
+                        "name": "👥 EQUIPOS",
+                        "channels": [
+                            {"name": "🌟┃equipo-principal", "type": "text", "topic": "Equipo principal"},
+                            {"name": "🔷┃equipo-academy", "type": "text", "topic": "Equipo academy"},
+                            {"name": "🆕┃reclutamiento", "type": "text", "topic": "Pruebas y reclutamiento"},
+                            {"name": "📈┃progreso", "type": "text", "topic": "Progreso de jugadores"}
+                        ]
+                    },
+                    {
+                        "name": "🔊 SALAS DE EQUIPO",
+                        "channels": [
+                            {"name": "🎤 Lobby Esports", "type": "voice", "limit": 0},
+                            {"name": "🌟 Equipo Principal", "type": "voice", "limit": 5},
+                            {"name": "🔷 Equipo Academy", "type": "voice", "limit": 5},
+                            {"name": "🎯 Scrims 1", "type": "voice", "limit": 5},
+                            {"name": "🎯 Scrims 2", "type": "voice", "limit": 5},
+                            {"name": "📊 Análisis", "type": "voice", "limit": 8},
+                            {"name": "🔒 Staff Only", "type": "voice", "limit": 3, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "🔍 LOGS",
+                        "channels": [
+                            {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
+                            {"name": "🚪┃entradas-salidas", "type": "text", "topic": "Log de usuarios entrando/saliendo", "staff_only": True},
+                            {"name": "💬┃mensajes-logs", "type": "text", "topic": "Log de mensajes editados/eliminados", "staff_only": True},
+                            {"name": "🤖┃acciones-bot", "type": "text", "topic": "Log de acciones y sanciones del bot", "staff_only": True},
+                            {"name": "🔊┃voice-logs", "type": "text", "topic": "Log de entradas/salidas de voice", "staff_only": True}
+                        ]
+                    }
+                ],
+                "roles": [
+                    {"name": "👑 Owner", "color": 0xff0000, "permissions": ["administrator"], "hoist": True},
+                    {"name": "💼 Manager", "color": 0xff6b6b, "permissions": ["manage_guild", "manage_channels"], "hoist": True},
+                    {"name": "🎮 Coach", "color": 0x4ecdc4, "permissions": ["manage_messages", "kick_members"], "hoist": True},
+                    {"name": "🌟 Pro Player", "color": 0xf1c40f, "permissions": [], "hoist": True},
+                    {"name": "🔷 Academy Player", "color": 0x3498db, "permissions": [], "hoist": True},
+                    {"name": "🎯 Analyst", "color": 0x9b59b6, "permissions": [], "hoist": False},
+                    {"name": "📺 Content Creator", "color": 0xe67e22, "permissions": [], "hoist": False},
+                    {"name": "🏃 Trial", "color": 0x95a5a6, "permissions": [], "hoist": False},
+                    {"name": "👥 Fan", "color": 0x2ecc71, "permissions": [], "hoist": False}
                 ]
             }
         }
@@ -467,10 +754,13 @@ class ServerSetupWizard(commands.Cog):
                                         )
                             
                             if channel_data["type"] == "text":
+                                # Reemplazar {guild_name} en el topic
+                                topic = channel_data.get("topic", "").replace("{guild_name}", guild.name)
+                                
                                 channel = await guild.create_text_channel(
                                     name=channel_data["name"],
                                     category=category,
-                                    topic=channel_data.get("topic", ""),
+                                    topic=topic,
                                     overwrites=overwrites,
                                     reason=f"Configuración automática - {template['name']}"
                                 )
@@ -946,59 +1236,117 @@ class ServerSetupWizard(commands.Cog):
                 # Crear roles de nivel según el tipo de servidor
                 level_roles_config = {
                     "gaming": [
-                        (5, "🏅 Novato", 0x95a5a6),
-                        (10, "⚔️ Aventurero", 0x3498db),
-                        (20, "🛡️ Guerrero", 0x9b59b6),
-                        (35, "👑 Héroe", 0xe67e22),
-                        (50, "🌟 Leyenda", 0xf1c40f),
-                        (75, "💎 Maestro", 0x1abc9c),
-                        (100, "🔥 Dios del Gaming", 0xe74c3c)
+                        (5, "Lvl 5", 0x95a5a6, ["use_external_emojis"]),
+                        (10, "Lvl 10", 0x3498db, ["use_external_emojis", "embed_links"]),
+                        (25, "Lvl 25", 0x9b59b6, ["use_external_emojis", "embed_links", "attach_files"]),
+                        (40, "Lvl 40", 0xe67e22, ["use_external_emojis", "embed_links", "attach_files", "add_reactions"]),
+                        (50, "Lvl 50", 0xf1c40f, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands"]),
+                        (75, "Lvl 75", 0x1abc9c, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands", "create_instant_invite"]),
+                        (100, "Lvl 100", 0xe74c3c, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands", "create_instant_invite", "change_nickname"])
                     ],
                     "community": [
-                        (5, "🌱 Nuevo Miembro", 0x95a5a6),
-                        (10, "💬 Conversador", 0x3498db),
-                        (25, "🤝 Colaborador", 0x9b59b6),
-                        (40, "🌟 Estrella", 0xe67e22),
-                        (60, "💎 VIP", 0xf1c40f),
-                        (80, "👑 Elite", 0x1abc9c),
-                        (100, "🏆 Leyenda de la Comunidad", 0xe74c3c)
+                        (5, "Lvl 5", 0x95a5a6, ["use_external_emojis"]),
+                        (10, "Lvl 10", 0x3498db, ["use_external_emojis", "embed_links"]),
+                        (25, "Lvl 25", 0x9b59b6, ["use_external_emojis", "embed_links", "attach_files"]),
+                        (40, "Lvl 40", 0xe67e22, ["use_external_emojis", "embed_links", "attach_files", "add_reactions"]),
+                        (50, "Lvl 50", 0xf1c40f, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands"]),
+                        (75, "Lvl 75", 0x1abc9c, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands", "create_instant_invite"]),
+                        (100, "Lvl 100", 0xe74c3c, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands", "create_instant_invite", "change_nickname"])
                     ],
                     "dev": [
-                        (5, "🔰 Junior Dev", 0x95a5a6),
-                        (15, "💻 Developer", 0x3498db),
-                        (30, "🚀 Senior Dev", 0x9b59b6),
-                        (50, "🏗️ Architect", 0xe67e22),
-                        (75, "🧠 Tech Lead", 0xf1c40f),
-                        (100, "🔥 Code Master", 0xe74c3c)
+                        (5, "Lvl 5", 0x95a5a6, ["use_external_emojis"]),
+                        (15, "Lvl 15", 0x3498db, ["use_external_emojis", "embed_links"]),
+                        (30, "Lvl 30", 0x9b59b6, ["use_external_emojis", "embed_links", "attach_files"]),
+                        (50, "Lvl 50", 0xe67e22, ["use_external_emojis", "embed_links", "attach_files", "add_reactions"]),
+                        (75, "Lvl 75", 0xf1c40f, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands"]),
+                        (100, "Lvl 100", 0xe74c3c, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands", "create_instant_invite", "change_nickname"])
                     ],
                     "streamer": [
-                        (5, "👀 Viewer", 0x95a5a6),
-                        (10, "⭐ Fan", 0x3498db),
-                        (25, "💎 VIP", 0x9b59b6),
-                        (40, "👑 Moderador VIP", 0xe67e22),
-                        (60, "🎭 Streamer Amigo", 0xf1c40f),
-                        (100, "🏆 Leyenda del Stream", 0xe74c3c)
+                        (5, "Lvl 5", 0x95a5a6, ["use_external_emojis"]),
+                        (10, "Lvl 10", 0x3498db, ["use_external_emojis", "embed_links"]),
+                        (25, "Lvl 25", 0x9b59b6, ["use_external_emojis", "embed_links", "attach_files"]),
+                        (40, "Lvl 40", 0xe67e22, ["use_external_emojis", "embed_links", "attach_files", "add_reactions"]),
+                        (60, "Lvl 60", 0xf1c40f, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands"]),
+                        (100, "Lvl 100", 0xe74c3c, ["use_external_emojis", "embed_links", "attach_files", "add_reactions", "use_slash_commands", "create_instant_invite", "change_nickname"])
                     ]
                 }
                 
                 roles_for_template = level_roles_config.get(template_id, level_roles_config["community"])
                 
-                # Crear roles de nivel
+                # Crear roles de nivel con permisos progresivos
                 created_level_roles = 0
-                for level, role_name, color in roles_for_template:
+                exclusive_channels = []
+                
+                # Buscar categoría de información para canales exclusivos
+                info_category = None
+                for category_name in ["📋 INFORMACIÓN", "📋 INFO", "ℹ️ INFORMACIÓN", "INFORMACIÓN"]:
+                    for category in guild.categories:
+                        if category.name.upper() == category_name.upper():
+                            info_category = category
+                            break
+                    if info_category:
+                        break
+                
+                for level, role_name, color, permissions in roles_for_template:
                     try:
                         # Verificar si el rol ya existe
                         existing_role = nextcord.utils.get(guild.roles, name=role_name)
                         if existing_role:
                             role = existing_role
                         else:
+                            # Crear permisos del rol
+                            role_permissions = nextcord.Permissions.none()
+                            
+                            # Permisos básicos para todos
+                            role_permissions.view_channel = True
+                            role_permissions.send_messages = True
+                            role_permissions.read_message_history = True
+                            
+                            # Permisos progresivos
+                            for perm in permissions:
+                                if hasattr(role_permissions, perm):
+                                    setattr(role_permissions, perm, True)
+                            
                             # Crear el rol
                             role = await guild.create_role(
                                 name=role_name,
                                 color=nextcord.Color(color),
+                                permissions=role_permissions,
                                 hoist=True,
+                                mentionable=True,
                                 reason=f"Rol de nivel {level} - Configuración automática"
                             )
+                        
+                        # Crear canal exclusivo para niveles altos (50+)
+                        if level >= 50 and info_category:
+                            try:
+                                # Verificar si el canal ya existe
+                                channel_name = f"🌟┃exclusivo-{role_name.lower().replace(' ', '-')}"
+                                existing_channel = nextcord.utils.get(guild.text_channels, name=channel_name)
+                                
+                                if not existing_channel:
+                                    overwrites = {
+                                        guild.default_role: nextcord.PermissionOverwrite(view_channel=False),
+                                        role: nextcord.PermissionOverwrite(
+                                            view_channel=True, 
+                                            send_messages=True,
+                                            embed_links=True,
+                                            attach_files=True,
+                                            add_reactions=True
+                                        )
+                                    }
+                                    
+                                    exclusive_channel = await guild.create_text_channel(
+                                        channel_name,
+                                        category=info_category,
+                                        overwrites=overwrites,
+                                        topic=f"Canal exclusivo para miembros {role_name} - ¡Felicidades por llegar hasta aquí! 🎉",
+                                        reason=f"Canal exclusivo nivel {level}"
+                                    )
+                                    exclusive_channels.append(exclusive_channel)
+                                    
+                            except Exception as e:
+                                logger.error(f"Error creando canal exclusivo para nivel {level}: {e}")
                         
                         # Guardar en base de datos
                         cursor.execute('''
@@ -1027,6 +1375,12 @@ class ServerSetupWizard(commands.Cog):
                     value=f"Se han creado **{created_level_roles}** roles de nivel automáticos",
                     inline=False
                 )
+                if exclusive_channels:
+                    embed.add_field(
+                        name="🌟 Canales Exclusivos",
+                        value=f"Se han creado **{len(exclusive_channels)}** canales exclusivos para niveles altos",
+                        inline=False
+                    )
                 embed.add_field(
                     name="📢 Anuncios",
                     value=f"Los anuncios de subida de nivel aparecerán en {announcement_channel.mention}",
@@ -1034,7 +1388,7 @@ class ServerSetupWizard(commands.Cog):
                 )
                 embed.add_field(
                     name="🎯 ¿Cómo funciona?",
-                    value="• Gana XP chateando en el servidor\n• Sube de nivel automáticamente\n• Recibe roles especiales por tu actividad\n• Usa `/nivel` para ver tu progreso",
+                    value="• Gana XP chateando en el servidor\n• Sube de nivel automáticamente\n• Recibe roles con permisos especiales\n• Accede a canales exclusivos en niveles altos\n• Usa `/nivel` para ver tu progreso",
                     inline=False
                 )
                 

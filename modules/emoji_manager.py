@@ -48,6 +48,20 @@ class EmojiManager(commands.Cog):
                 "https://cdn.discordapp.com/emojis/393852367856930817.png"   # Blob love
             ]
         }
+        
+    def get_server_limits(self, guild: nextcord.Guild):
+        """Obtiene los límites de emojis y stickers según el nivel de boost del servidor"""
+        boost_level = guild.premium_tier
+        
+        # Límites según el nivel de boost de Discord
+        limits = {
+            0: {"emojis": 50, "stickers": 5, "animated_emojis": 50},    # Sin boost
+            1: {"emojis": 100, "stickers": 15, "animated_emojis": 100}, # Nivel 1
+            2: {"emojis": 150, "stickers": 30, "animated_emojis": 150}, # Nivel 2  
+            3: {"emojis": 250, "stickers": 60, "animated_emojis": 250}  # Nivel 3
+        }
+        
+        return limits.get(boost_level, limits[0])
     
     async def _ensure_session(self):
         """asegurar que la sesión aiohttp esté iniciada"""
@@ -143,6 +157,11 @@ class EmojiManager(commands.Cog):
         pack: str = nextcord.SlashOption(
             description="Pack de emojis a instalar",
             choices=["pepe", "kappa", "discord", "gaming", "cute"]
+        ),
+        cantidad: int = nextcord.SlashOption(
+            description="Cantidad de emojis a instalar (se ajustará según límites del servidor)",
+            default=None,
+            required=False
         )
     ):
         """instalar pack de emojis"""
@@ -155,6 +174,26 @@ class EmojiManager(commands.Cog):
             return
         
         await interaction.response.defer()
+        
+        # Obtener límites del servidor
+        server_limits = self.get_server_limits(interaction.guild)
+        current_emojis = len(interaction.guild.emojis)
+        available_slots = server_limits["emojis"] - current_emojis
+        
+        # Información sobre el nivel de boost
+        boost_info = f"🚀 **Nivel de Boost:** {interaction.guild.premium_tier}\n"
+        boost_info += f"📊 **Límite de Emojis:** {server_limits['emojis']}\n"
+        boost_info += f"📈 **Emojis Actuales:** {current_emojis}\n"
+        boost_info += f"✅ **Espacios Disponibles:** {available_slots}\n\n"
+        
+        if available_slots <= 0:
+            embed = nextcord.Embed(
+                title="❌ Sin Espacios Disponibles",
+                description=f"{boost_info}El servidor ha alcanzado su límite de emojis.\n\n💡 **Tip:** Boosteando el servidor puedes aumentar el límite!",
+                color=nextcord.Color.red()
+            )
+            await interaction.followup.send(embed=embed)
+            return
         
         # Pack de emojis populares
         packs = {
@@ -206,17 +245,34 @@ class EmojiManager(commands.Cog):
             return
         
         pack_info = packs[pack]
+        
+        # Determinar cuántos emojis instalar
+        total_emojis_in_pack = len(pack_info['emojis'])
+        if cantidad is None:
+            # Si no se especifica cantidad, instalar todos hasta el límite
+            emojis_to_install = min(total_emojis_in_pack, available_slots)
+        else:
+            # Si se especifica cantidad, no exceder el límite ni el pack
+            emojis_to_install = min(cantidad, available_slots, total_emojis_in_pack)
+        
+        if emojis_to_install <= 0:
+            await interaction.followup.send("❌ No hay espacios disponibles para instalar emojis.")
+            return
+        
         added_emojis = []
         failed_emojis = []
         
         embed = nextcord.Embed(
             title=f"📦 Instalando {pack_info['name']}",
-            description="Añadiendo emojis al servidor...",
+            description=f"{boost_info}Instalando **{emojis_to_install}** de **{total_emojis_in_pack}** emojis disponibles...",
             color=nextcord.Color.blue()
         )
         await interaction.followup.send(embed=embed)
         
-        for name, url in pack_info['emojis']:
+        # Instalar solo la cantidad especificada
+        selected_emojis = pack_info['emojis'][:emojis_to_install]
+        
+        for name, url in selected_emojis:
             try:
                 # URLs de ejemplo - en producción usarías URLs reales
                 if "123456789" in url:  # URLs de ejemplo
@@ -414,6 +470,83 @@ class EmojiManager(commands.Cog):
         except Exception as e:
             logger.error(f"Error eliminando emoji: {e}")
             await interaction.response.send_message("❌ Error eliminando el emoji.")
+    
+    @emoji_group.subcommand(
+        name="info",
+        description="Mostrar información sobre límites de emojis y stickers del servidor"
+    )
+    async def emoji_info(self, interaction: nextcord.Interaction):
+        """mostrar límites del servidor"""
+        
+        limits = self.get_server_limits(interaction.guild)
+        current_emojis = len(interaction.guild.emojis)
+        current_stickers = len(interaction.guild.stickers)
+        
+        embed = nextcord.Embed(
+            title="📊 Información del Servidor",
+            description=f"**{interaction.guild.name}**",
+            color=nextcord.Color.blue()
+        )
+        
+        # Información de boost
+        boost_level = interaction.guild.premium_tier
+        boost_count = interaction.guild.premium_subscription_count or 0
+        boost_emoji = ["💀", "🥉", "🥈", "🥇"][boost_level]
+        
+        embed.add_field(
+            name=f"{boost_emoji} Nivel de Boost",
+            value=f"**Nivel {boost_level}** ({boost_count} boosts)",
+            inline=True
+        )
+        
+        # Límites de emojis
+        emoji_percentage = (current_emojis / limits["emojis"]) * 100
+        emoji_bar = self._create_progress_bar(emoji_percentage)
+        
+        embed.add_field(
+            name="😀 Emojis",
+            value=f"**{current_emojis}** / **{limits['emojis']}**\n{emoji_bar} ({emoji_percentage:.1f}%)",
+            inline=True
+        )
+        
+        # Límites de stickers
+        sticker_percentage = (current_stickers / limits["stickers"]) * 100
+        sticker_bar = self._create_progress_bar(sticker_percentage)
+        
+        embed.add_field(
+            name="🏷️ Stickers",
+            value=f"**{current_stickers}** / **{limits['stickers']}**\n{sticker_bar} ({sticker_percentage:.1f}%)",
+            inline=True
+        )
+        
+        # Beneficios del siguiente nivel
+        if boost_level < 3:
+            next_level = boost_level + 1
+            next_limits = {
+                1: {"emojis": 100, "stickers": 15},
+                2: {"emojis": 150, "stickers": 30}, 
+                3: {"emojis": 250, "stickers": 60}
+            }[next_level]
+            
+            embed.add_field(
+                name=f"🚀 Nivel {next_level} Benefits",
+                value=f"• **{next_limits['emojis']}** emojis ({next_limits['emojis'] - limits['emojis']} más)\n• **{next_limits['stickers']}** stickers ({next_limits['stickers'] - limits['stickers']} más)",
+                inline=False
+            )
+        
+        await interaction.response.send_message(embed=embed)
+    
+    def _create_progress_bar(self, percentage):
+        """Crear barra de progreso visual"""
+        filled = int(percentage / 10)
+        empty = 10 - filled
+        
+        if percentage >= 90:
+            return "🟥" * filled + "⬜" * empty
+        elif percentage >= 70:
+            return "🟨" * filled + "⬜" * empty
+        else:
+            return "🟩" * filled + "⬜" * empty
     
     def cog_unload(self):
         """cerrar sesión al descargar"""

@@ -91,7 +91,15 @@ class ServerSetupWizard(commands.Cog):
                         ]
                     },
                     {
-                        "name": "🔊 VOZ",
+                        "name": "� NSFW",
+                        "channels": [
+                            {"name": "🔞┃nsfw-general", "type": "text", "topic": "Contenido NSFW general", "nsfw": True},
+                            {"name": "🍑┃nsfw-images", "type": "text", "topic": "Imágenes NSFW", "nsfw": True},
+                            {"name": "💕┃nsfw-chat", "type": "text", "topic": "Chat NSFW", "nsfw": True}
+                        ]
+                    },
+                    {
+                        "name": "�🔊 VOZ",
                         "channels": [
                             {"name": "🎤 Lobby", "type": "voice", "limit": 0},
                             {"name": "🎮 Gaming 1", "type": "voice", "limit": 4},
@@ -168,7 +176,15 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "🏎️┃lfg-racing", "type": "text", "topic": "Buscar equipo para carreras"},
                             {"name": "🏰┃lfg-rpg", "type": "text", "topic": "Buscar equipo para RPG"}
                         ]
+                    },                    {
+                        "name": "🔞 NSFW",
+                        "channels": [
+                            {"name": "🔞┃nsfw-general", "type": "text", "topic": "Contenido NSFW general", "nsfw": True},
+                            {"name": "🍑┃nsfw-images", "type": "text", "topic": "Imágenes NSFW", "nsfw": True},
+                            {"name": "💕┃nsfw-chat", "type": "text", "topic": "Chat NSFW", "nsfw": True}
+                        ]
                     },
+                    
                     {
                         "name": "🔊 VOICE CHANNELS",
                         "channels": [
@@ -260,7 +276,15 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📝┃code-review", "type": "text", "topic": "Revisión de código"},
                             {"name": "💡┃ideas", "type": "text", "topic": "Ideas y sugerencias de proyectos"}
                         ]
+                    },                    {
+                        "name": "🔞 NSFW",
+                        "channels": [
+                            {"name": "🔞┃nsfw-general", "type": "text", "topic": "Contenido NSFW general", "nsfw": True},
+                            {"name": "🍑┃nsfw-images", "type": "text", "topic": "Imágenes NSFW", "nsfw": True},
+                            {"name": "💕┃nsfw-chat", "type": "text", "topic": "Chat NSFW", "nsfw": True}
+                        ]
                     },
+                    
                     {
                         "name": "🔊 VOICE",
                         "channels": [
@@ -341,7 +365,15 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📚┃libros", "type": "text", "topic": "Recomendaciones de libros"},
                             {"name": "🎨┃arte-creativo", "type": "text", "topic": "Arte y creatividad"}
                         ]
+                    },                    {
+                        "name": "🔞 NSFW",
+                        "channels": [
+                            {"name": "🔞┃nsfw-general", "type": "text", "topic": "Contenido NSFW general", "nsfw": True},
+                            {"name": "🍑┃nsfw-images", "type": "text", "topic": "Imágenes NSFW", "nsfw": True},
+                            {"name": "💕┃nsfw-chat", "type": "text", "topic": "Chat NSFW", "nsfw": True}
+                        ]
                     },
+                    
                     {
                         "name": "🔊 VOICE",
                         "channels": [
@@ -421,7 +453,15 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📝┃letras", "type": "text", "topic": "Escritura de letras y poesía"},
                             {"name": "🤝┃colaboraciones", "type": "text", "topic": "Busca colaboraciones musicales"}
                         ]
+                    },                    {
+                        "name": "🔞 NSFW",
+                        "channels": [
+                            {"name": "🔞┃nsfw-general", "type": "text", "topic": "Contenido NSFW general", "nsfw": True},
+                            {"name": "🍑┃nsfw-images", "type": "text", "topic": "Imágenes NSFW", "nsfw": True},
+                            {"name": "💕┃nsfw-chat", "type": "text", "topic": "Chat NSFW", "nsfw": True}
+                        ]
                     },
+                    
                     {
                         "name": "🔊 VOICE & MÚSICA",
                         "channels": [
@@ -509,7 +549,15 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📱┃gacha-games", "type": "text", "topic": "Juegos gacha"},
                             {"name": "🎲┃otros-juegos", "type": "text", "topic": "Otros juegos otaku"}
                         ]
+                    },                    {
+                        "name": "🔞 NSFW",
+                        "channels": [
+                            {"name": "🔞┃nsfw-general", "type": "text", "topic": "Contenido NSFW general", "nsfw": True},
+                            {"name": "🍑┃nsfw-images", "type": "text", "topic": "Imágenes NSFW", "nsfw": True},
+                            {"name": "💕┃nsfw-chat", "type": "text", "topic": "Chat NSFW", "nsfw": True}
+                        ]
                     },
+                    
                     {
                         "name": "🔊 VOICE",
                         "channels": [
@@ -592,7 +640,15 @@ class ServerSetupWizard(commands.Cog):
                         ]
                     },
                     {
-                        "name": "🔊 SALAS DE EQUIPO",
+                        "name": "� NSFW",
+                        "channels": [
+                            {"name": "🔞┃nsfw-general", "type": "text", "topic": "Contenido NSFW general", "nsfw": True},
+                            {"name": "🍑┃nsfw-images", "type": "text", "topic": "Imágenes NSFW", "nsfw": True},
+                            {"name": "💕┃nsfw-chat", "type": "text", "topic": "Chat NSFW", "nsfw": True}
+                        ]
+                    },
+                    {
+                        "name": "�🔊 SALAS DE EQUIPO",
                         "channels": [
                             {"name": "🎤 Lobby Esports", "type": "voice", "limit": 0},
                             {"name": "🌟 Equipo Principal", "type": "voice", "limit": 5},

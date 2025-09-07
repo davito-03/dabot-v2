@@ -117,12 +117,20 @@ class StickerManager(commands.Cog):
             )
             return
         
-        # Verificar límites de Nitro
+        # Verificar límites de Discord (informativo)
         if interaction.guild.premium_tier < 2:
-            await interaction.response.send_message(
-                "❌ El servidor necesita **Nitro Nivel 2+** para usar stickers personalizados.",
-                ephemeral=True
+            embed = nextcord.Embed(
+                title="⚠️ Limitación de Discord",
+                description="Los servidores necesitan **Nitro Nivel 2+** para stickers personalizados.\n\n" +
+                           "Sin embargo, puedes intentar el comando. Discord mostrará el error específico si no es posible.",
+                color=nextcord.Color.orange()
             )
+            embed.add_field(
+                name="💡 Alternativa",
+                value="Puedes usar emojis personalizados que requieren menos nivel de boost.",
+                inline=False
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
             return
         
         await interaction.response.defer()
@@ -211,10 +219,17 @@ class StickerManager(commands.Cog):
             return
         
         if interaction.guild.premium_tier < 2:
-            await interaction.response.send_message(
-                "❌ El servidor necesita **Nitro Nivel 2+** para stickers.",
-                ephemeral=True
+            embed = nextcord.Embed(
+                title="⚠️ Limitación de Discord",
+                description="Los servidores necesitan **Nitro Nivel 2+** para stickers personalizados.",
+                color=nextcord.Color.orange()
             )
+            embed.add_field(
+                name="💡 Consejo",
+                value="Aumenta el nivel de boost del servidor para desbloquear esta función.",
+                inline=False
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
             return
         
         await interaction.response.defer()

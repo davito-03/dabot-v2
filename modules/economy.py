@@ -155,11 +155,39 @@ class Economy(commands.Cog):
         ver el dinero de un usuario
         uso: !balance [@usuario]
         """
+        await self._show_balance(ctx, member)
+    
+    @nextcord.slash_command(name="balance", description="Ver el balance de monedas de un usuario")
+    async def balance_slash(
+        self, 
+        interaction: nextcord.Interaction,
+        usuario: nextcord.Member = nextcord.SlashOption(
+            description="Usuario a consultar (opcional)",
+            required=False
+        )
+    ):
+        """Ver el balance de monedas de un usuario"""
+        await self._show_balance(interaction, usuario)
+    
+    async def _show_balance(self, ctx_or_interaction, member=None):
+        """función interna para mostrar balance"""
         try:
-            if member is None:
-                member = ctx.author
+            # Determinar si es command o slash command
+            if hasattr(ctx_or_interaction, 'response'):
+                # Es slash command
+                author = ctx_or_interaction.user
+                guild = ctx_or_interaction.guild
+                send_func = ctx_or_interaction.response.send_message
+            else:
+                # Es command tradicional
+                author = ctx_or_interaction.author
+                guild = ctx_or_interaction.guild
+                send_func = ctx_or_interaction.send
             
-            user_data = self.get_user_data(ctx.guild.id, member.id)
+            if member is None:
+                member = author
+            
+            user_data = self.get_user_data(guild.id, member.id)
             
             embed = nextcord.Embed(
                 title=f"💰 cartera de {member.display_name}",
@@ -177,13 +205,17 @@ class Economy(commands.Cog):
             if member.avatar:
                 embed.set_thumbnail(url=member.avatar.url)
             
-            embed.set_footer(text="usa !daily para obtener dinero diario")
+            embed.set_footer(text="usa /daily para obtener dinero diario")
             
-            await ctx.send(embed=embed)
+            await send_func(embed=embed)
             
         except Exception as e:
             logger.error(f"error en balance: {e}")
-            await ctx.send("❌ error al obtener el balance.")
+            error_msg = "❌ error al obtener el balance."
+            if hasattr(ctx_or_interaction, 'response'):
+                await ctx_or_interaction.response.send_message(error_msg, ephemeral=True)
+            else:
+                await ctx_or_interaction.send(error_msg)
     
     @commands.command(name='daily', aliases=['diario'])
     async def daily_reward(self, ctx):
@@ -191,8 +223,29 @@ class Economy(commands.Cog):
         reclamar recompensa diaria
         uso: !daily
         """
+        await self._claim_daily(ctx)
+    
+    @nextcord.slash_command(name="daily", description="Reclamar tu recompensa diaria de monedas")
+    async def daily_slash(self, interaction: nextcord.Interaction):
+        """Reclamar recompensa diaria"""
+        await self._claim_daily(interaction)
+    
+    async def _claim_daily(self, ctx_or_interaction):
+        """función interna para reclamar daily"""
         try:
-            user_data = self.get_user_data(ctx.guild.id, ctx.author.id)
+            # Determinar si es command o slash command
+            if hasattr(ctx_or_interaction, 'response'):
+                # Es slash command
+                author = ctx_or_interaction.user
+                guild = ctx_or_interaction.guild
+                send_func = ctx_or_interaction.response.send_message
+            else:
+                # Es command tradicional
+                author = ctx_or_interaction.author
+                guild = ctx_or_interaction.guild
+                send_func = ctx_or_interaction.send
+            
+            user_data = self.get_user_data(guild.id, author.id)
             now = datetime.now()
             
             # verificar cooldown
@@ -205,7 +258,8 @@ class Economy(commands.Cog):
                     hours, remainder = divmod(remaining.seconds, 3600)
                     minutes, _ = divmod(remainder, 60)
                     
-                    await ctx.send(f"⏰ ya reclamaste tu recompensa diaria. vuelve en {hours}h {minutes}m.")
+                    error_msg = f"⏰ ya reclamaste tu recompensa diaria. vuelve en {hours}h {minutes}m."
+                    await send_func(error_msg)
                     return
             
             # calcular recompensa base
@@ -229,7 +283,7 @@ class Economy(commands.Cog):
             total_reward = base_reward + streak_bonus + level_bonus + random_bonus
             
             # añadir dinero
-            self.add_money(ctx.guild.id, ctx.author.id, total_reward, "daily reward")
+            self.add_money(guild.id, author.id, total_reward, "daily reward")
             user_data['last_daily'] = now.isoformat()
             
             # embed de recompensa
@@ -247,11 +301,15 @@ class Economy(commands.Cog):
             
             embed.add_field(name="💵 nuevo balance", value=f"€{user_data['balance']:,}", inline=False)
             
-            await ctx.send(embed=embed)
+            await send_func(embed=embed)
             
         except Exception as e:
             logger.error(f"error en daily: {e}")
-            await ctx.send("❌ error al reclamar recompensa diaria.")
+            error_msg = "❌ error al reclamar recompensa diaria."
+            if hasattr(ctx_or_interaction, 'response'):
+                await ctx_or_interaction.response.send_message(error_msg, ephemeral=True)
+            else:
+                await ctx_or_interaction.send(error_msg)
     
     @commands.command(name='work', aliases=['trabajar'])
     async def work(self, ctx):
@@ -427,30 +485,57 @@ class Economy(commands.Cog):
         apostar dinero en el casino
         uso: !gamble [cantidad/all]
         """
+        await self._gamble_money(ctx, amount)
+    
+    @nextcord.slash_command(name="casino", description="Apostar dinero en juegos de casino")
+    async def casino_slash(
+        self, 
+        interaction: nextcord.Interaction,
+        cantidad: str = nextcord.SlashOption(
+            description="Cantidad a apostar o 'todo' para apostar todo tu dinero"
+        )
+    ):
+        """Apostar dinero en el casino"""
+        await self._gamble_money(interaction, cantidad)
+    
+    async def _gamble_money(self, ctx_or_interaction, amount):
+        """función interna para apostar dinero"""
         try:
-            user_data = self.get_user_data(ctx.guild.id, ctx.author.id)
+            # Determinar si es command o slash command
+            if hasattr(ctx_or_interaction, 'response'):
+                # Es slash command
+                author = ctx_or_interaction.user
+                guild = ctx_or_interaction.guild
+                send_func = ctx_or_interaction.response.send_message
+            else:
+                # Es command tradicional
+                author = ctx_or_interaction.author
+                guild = ctx_or_interaction.guild
+                send_func = ctx_or_interaction.send
+            
+            user_data = self.get_user_data(guild.id, author.id)
             
             # parsear cantidad
-            if amount.lower() in ['all', 'todo']:
+            if amount.lower() in ['all', 'todo', 'everything']:
                 bet_amount = user_data['balance']
             else:
                 try:
                     bet_amount = int(amount)
                 except ValueError:
-                    await ctx.send("❌ cantidad inválida. usa un número o 'all'.")
+                    await send_func("❌ cantidad inválida. usa un número o 'todo'.")
                     return
             
             # verificaciones
             if bet_amount <= 0:
-                await ctx.send("❌ debes apostar una cantidad positiva.")
+                await send_func("❌ debes apostar una cantidad positiva.")
                 return
             
             if bet_amount > user_data['balance']:
-                await ctx.send("❌ no tienes suficiente dinero.")
+                await send_func("❌ no tienes suficiente dinero.")
                 return
             
             if bet_amount < 10:
-                await ctx.send("❌ la apuesta mínima es €10.")
+                await send_func("❌ la apuesta mínima es €10.")
                 return
             
             # juegos de casino
@@ -465,13 +550,13 @@ class Economy(commands.Cog):
             game = random.choice(games)
             
             # quitar dinero apostado
-            self.remove_money(ctx.guild.id, ctx.author.id, bet_amount, "gambling")
+            self.remove_money(guild.id, author.id, bet_amount, "gambling")
             
             # determinar resultado
             if random.random() < game["win_chance"]:
                 # ganó
                 winnings = int(bet_amount * game["multiplier"])
-                self.add_money(ctx.guild.id, ctx.author.id, winnings, "gambling win")
+                self.add_money(guild.id, author.id, winnings, "gambling win")
                 
                 embed = nextcord.Embed(
                     title=f"{game['emoji']} ¡ganaste!",
@@ -492,11 +577,15 @@ class Economy(commands.Cog):
             embed.add_field(name="💵 nuevo balance", value=f"€{user_data['balance']:,}", inline=True)
             embed.set_footer(text="juega responsablemente")
             
-            await ctx.send(embed=embed)
+            await send_func(embed=embed)
             
         except Exception as e:
             logger.error(f"error en gamble: {e}")
-            await ctx.send("❌ error en el casino.")
+            error_msg = "❌ error en el casino."
+            if hasattr(ctx_or_interaction, 'response'):
+                await ctx_or_interaction.response.send_message(error_msg, ephemeral=True)
+            else:
+                await ctx_or_interaction.send(error_msg)
     
     @commands.command(name='duel', aliases=['duelo'])
     async def duel(self, ctx, member: nextcord.Member, amount: int):
@@ -723,6 +812,91 @@ class Economy(commands.Cog):
         except Exception as e:
             logger.error(f"error en pay: {e}")
             await ctx.send("❌ error al realizar el pago.")
+    
+    @nextcord.slash_command(name="donar", description="💝 Apoya el desarrollo del bot con una donación")
+    async def donar(self, interaction: nextcord.Interaction):
+        """Comando para mostrar información de donaciones"""
+        embed = nextcord.Embed(
+            title="💝 ¡Apoya el desarrollo del bot!",
+            description="¡Hola! Soy **davito**, el desarrollador de este bot. Si te gusta y quieres apoyar su desarrollo, puedes hacer una donación:",
+            color=0x00ff84  # Color verde PayPal
+        )
+        
+        embed.add_field(
+            name="💳 PayPal",
+            value="[🔗 **Donar por PayPal**](https://www.paypal.com/paypalme/davito03)",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🎯 ¿Para qué se usan las donaciones?",
+            value="• 🛠️ Desarrollo de nuevas funciones\n• 🔧 Mantenimiento del bot\n• ☁️ Hosting y servidores\n• ⚡ Mejoras de rendimiento",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🎁 Beneficios de donar",
+            value="• ❤️ Mi eterna gratitud\n• 🏆 Reconocimiento especial\n• 🚀 Acceso prioritario a nuevas funciones\n• 💬 Soporte directo del desarrollador",
+            inline=False
+        )
+        
+        embed.set_footer(
+            text="¡Cada donación, por pequeña que sea, hace una gran diferencia! ❤️",
+            icon_url="https://cdn-icons-png.flaticon.com/512/196/196561.png"  # Icono de corazón
+        )
+        
+        embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/888/888879.png")  # Icono de donación
+        
+        # Crear botón para PayPal
+        view = DonationView()
+        
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+    
+    @commands.command(name='donate', aliases=['donar', 'donation', 'donacion'])
+    async def donate_legacy(self, ctx):
+        """Comando tradicional para donaciones"""
+        embed = nextcord.Embed(
+            title="💝 ¡Apoya el desarrollo del bot!",
+            description="¡Hola! Soy **davito**, el desarrollador de este bot. Si te gusta y quieres apoyar su desarrollo, puedes hacer una donación:",
+            color=0x00ff84  # Color verde PayPal
+        )
+        
+        embed.add_field(
+            name="💳 PayPal",
+            value="[🔗 **Donar por PayPal**](https://www.paypal.com/paypalme/davito03)",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🎯 ¿Para qué se usan las donaciones?",
+            value="• 🛠️ Desarrollo de nuevas funciones\n• 🔧 Mantenimiento del bot\n• ☁️ Hosting y servidores\n• ⚡ Mejoras de rendimiento",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🎁 Beneficios de donar",
+            value="• ❤️ Mi eterna gratitud\n• 🏆 Reconocimiento especial\n• 🚀 Acceso prioritario a nuevas funciones\n• 💬 Soporte directo del desarrollador",
+            inline=False
+        )
+        
+        embed.set_footer(
+            text="¡Cada donación, por pequeña que sea, hace una gran diferencia! ❤️"
+        )
+        
+        await ctx.send(embed=embed)
+
+class DonationView(nextcord.ui.View):
+    """Vista con botón para donaciones"""
+    
+    def __init__(self):
+        super().__init__(timeout=300)
+        # Añadir el botón de enlace directamente en el constructor
+        self.add_item(nextcord.ui.Button(
+            label="💳 Donar por PayPal",
+            style=nextcord.ButtonStyle.link,
+            url="https://www.paypal.com/paypalme/davito03",
+            emoji="💝"
+        ))
 
 def setup(bot):
     """Función setup para cargar el cog"""

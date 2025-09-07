@@ -40,9 +40,10 @@ class AutoRules(commands.Cog):
 
     async def setup_server_rules(self, guild, template_type):
         """Configurar reglas automáticas según el tipo de servidor"""
+        guild_name = guild.name
         rules_templates = {
             "streamer": {
-                "title": "📋 REGLAS DEL SERVIDOR - COMUNIDAD STREAMER",
+                "title": f"📋 REGLAS DEL SERVIDOR - {guild_name.upper()}",
                 "rules": [
                     "🎭 **RESPETO Y CONVIVENCIA**",
                     "• Trata a todos con respeto y amabilidad",
@@ -54,7 +55,7 @@ class AutoRules(commands.Cog):
                     "• Mantén los temas en sus canales correspondientes",
                     "• No spoilers sin avisar previamente",
                     "• Respeta al streamer y no interrumpas con temas irrelevantes",
-                    "• Los links solo en <#links-clips>",
+                    "• Los links solo en canales permitidos",
                     "",
                     "🔊 **CANALES DE VOZ**",
                     "• No grites ni hagas ruidos molestos",
@@ -63,7 +64,7 @@ class AutoRules(commands.Cog):
                     "• No reproduzcas música sin permiso",
                     "",
                     "🎨 **CONTENIDO CREATIVO**",
-                    "• El fanart va en <#fanart>",
+                    "• El fanart va en canales específicos",
                     "• Respeta los derechos de autor",
                     "• No resubas contenido sin dar créditos",
                     "",
@@ -75,7 +76,7 @@ class AutoRules(commands.Cog):
                 ]
             },
             "gaming": {
-                "title": "📋 REGLAS DEL SERVIDOR - GAMING",
+                "title": f"📋 REGLAS DEL SERVIDOR - {guild_name.upper()}",
                 "rules": [
                     "🎮 **GAMING Y RESPETO**",
                     "• Respeto absoluto entre gamers",
@@ -90,8 +91,8 @@ class AutoRules(commands.Cog):
                     "• No abandones equipos sin avisar",
                     "",
                     "💬 **CHAT Y COMUNICACIÓN**",
-                    "• Screenshots y clips en <#screenshots>",
-                    "• Logros y achievements en <#logros>",
+                    "• Screenshots y clips en canales específicos",
+                    "• Logros y achievements en canales específicos",
                     "• Links solo en canales permitidos",
                     "• No spam de invitaciones a otros servidores",
                     "",
@@ -109,7 +110,7 @@ class AutoRules(commands.Cog):
                 ]
             },
             "desarrollo": {
-                "title": "📋 REGLAS DEL SERVIDOR - DESARROLLO",
+                "title": f"📋 REGLAS DEL SERVIDOR - {guild_name.upper()}",
                 "rules": [
                     "💻 **PROFESIONALISMO Y RESPETO**",
                     "• Mantén un ambiente profesional y colaborativo",
@@ -143,7 +144,7 @@ class AutoRules(commands.Cog):
                 ]
             },
             "general": {
-                "title": "📋 REGLAS DEL SERVIDOR - COMUNIDAD GENERAL",
+                "title": f"📋 REGLAS DEL SERVIDOR - {guild_name.upper()}",
                 "rules": [
                     "🌟 **CONVIVENCIA GENERAL**",
                     "• Trata a todos con respeto y amabilidad",
@@ -174,6 +175,108 @@ class AutoRules(commands.Cog):
                     "• No publicidad sin permiso",
                     "• Reporta problemas al staff",
                     "• Las decisiones del staff son definitivas"
+                ]
+            },
+            "music": {
+                "title": f"📋 REGLAS DEL SERVIDOR - {guild_name.upper()}",
+                "rules": [
+                    "🎵 **MÚSICA Y ARMONÍA**",
+                    "• Respeta todos los géneros musicales",
+                    "• No existe música 'mala', solo gustos diferentes",
+                    "• Comparte tu música favorita con respeto",
+                    "• Aprecia el trabajo de todos los artistas",
+                    "",
+                    "🎧 **COMPARTIR MÚSICA**",
+                    "• Usa canales específicos para compartir",
+                    "• Da crédito a los artistas originales",
+                    "• Describe por qué te gusta la canción",
+                    "• No spam de links musicales",
+                    "",
+                    "🎤 **CREADORES DE CONTENIDO**",
+                    "• Comparte tu música original con moderación",
+                    "• Acepta críticas constructivas",
+                    "• Colabora con otros músicos",
+                    "• Respeta los derechos de autor",
+                    "",
+                    "🔊 **CANALES DE VOZ MUSICALES**",
+                    "• Pide permiso antes de poner música",
+                    "• Respeta los turnos de DJ",
+                    "• Mantén volumen apropiado",
+                    "• No interrumpas actuaciones en vivo",
+                    "",
+                    "⚠️ **MODERACIÓN**",
+                    "• No piratería ni links ilegales",
+                    "• Respeta derechos de autor",
+                    "• No ataques por gustos musicales",
+                    "• La música une, no divide"
+                ]
+            },
+            "anime": {
+                "title": f"📋 REGLAS DEL SERVIDOR - {guild_name.upper()}",
+                "rules": [
+                    "🌸 **OTAKU CONVIVENCIA**",
+                    "• Respeta todos los gustos de anime/manga",
+                    "• No existe el 'anime malo', solo preferencias",
+                    "• Comparte tus recomendaciones con respeto",
+                    "• Acepta críticas constructivas de series",
+                    "",
+                    "📺 **SPOILERS Y CONTENIDO**",
+                    "• SIEMPRE marca spoilers apropiadamente",
+                    "• Usa canales específicos para discusiones",
+                    "• Respeta a quien va por detrás en series",
+                    "• No spoilers en nombres o avatares",
+                    "",
+                    "🎨 **FANART Y CREACIONES**",
+                    "• Da crédito al artista original",
+                    "• Comparte tu arte con orgullo",
+                    "• Respeta el estilo de otros",
+                    "• No repost sin permiso",
+                    "",
+                    "🔞 **CONTENIDO NSFW**",
+                    "• Solo en canales específicos marcados",
+                    "• Respeta límites de otros miembros",
+                    "• No lolis/shotas sexualizados",
+                    "• Etiqueta apropiadamente",
+                    "",
+                    "⚠️ **MODERACIÓN**",
+                    "• No piratería, usa plataformas legales",
+                    "• Respeta derechos de autor",
+                    "• No wars entre fandoms",
+                    "• El anime nos une como comunidad"
+                ]
+            },
+            "esports": {
+                "title": f"📋 REGLAS DEL SERVIDOR - {guild_name.upper()}",
+                "rules": [
+                    "🏆 **ESPORTS Y COMPETICIÓN**",
+                    "• Respeto hacia todos los competidores",
+                    "• Acepta derrotas con deportividad",
+                    "• Celebra victorias sin toxicidad",
+                    "• Aprende de cada partida",
+                    "",
+                    "⚔️ **COMPETICIONES**",
+                    "• Cumple horarios de práctica y torneos",
+                    "• Comunica problemas con anticipación",
+                    "• Respeta decisiones de coaches",
+                    "• No abandones equipo durante torneo",
+                    "",
+                    "📊 **ANÁLISIS Y ESTRATEGIA**",
+                    "• Comparte conocimiento táctico",
+                    "• Acepta feedback constructivo",
+                    "• Estudia y mejora constantemente",
+                    "• Respeta meta y estrategias diferentes",
+                    "",
+                    "🎮 **ENTRENAMIENTO**",
+                    "• Participa activamente en prácticas",
+                    "• Mantén comunicación clara",
+                    "• Aprende de errores propios y ajenos",
+                    "• Ayuda a teammates menos experimentados",
+                    "",
+                    "⚠️ **MODERACIÓN**",
+                    "• No toxicidad hacia rivals",
+                    "• No cheats, hacks o exploits",
+                    "• Reporta comportamientos antisportivos",
+                    "• Fair play ante todo"
                 ]
             }
         }
@@ -376,6 +479,73 @@ class AutoRules(commands.Cog):
                 
             except:
                 pass
+    
+    async def setup_channel_permissions(self, guild):
+        """Configurar permisos específicos para canales de información"""
+        try:
+            # Buscar roles de administrador y moderador
+            admin_roles = []
+            mod_roles = []
+            everyone_role = guild.default_role
+            
+            for role in guild.roles:
+                if any(keyword in role.name.lower() for keyword in ['admin', 'administrador', 'owner', 'propietario']):
+                    admin_roles.append(role)
+                elif any(keyword in role.name.lower() for keyword in ['mod', 'moderador', 'staff']):
+                    mod_roles.append(role)
+            
+            # Canales que deben ser de solo lectura para usuarios normales
+            readonly_keywords = [
+                'reglas', 'rules', 'información', 'info', 'anuncios', 'announcements',
+                'bienvenida', 'welcome', 'novedades', 'news', 'nivel', 'level'
+            ]
+            
+            for channel in guild.text_channels:
+                channel_name = channel.name.lower()
+                
+                # Si es un canal de información, configurar permisos
+                if any(keyword in channel_name for keyword in readonly_keywords):
+                    try:
+                        # Quitar permisos de escritura a @everyone
+                        await channel.set_permissions(
+                            everyone_role,
+                            send_messages=False,
+                            add_reactions=True,  # Pueden reaccionar
+                            read_messages=True,
+                            reason="Configuración automática - Canal de información"
+                        )
+                        
+                        # Dar permisos completos a administradores
+                        for admin_role in admin_roles:
+                            await channel.set_permissions(
+                                admin_role,
+                                send_messages=True,
+                                manage_messages=True,
+                                embed_links=True,
+                                read_messages=True,
+                                reason="Configuración automática - Rol administrativo"
+                            )
+                        
+                        # Dar permisos de escritura a moderadores
+                        for mod_role in mod_roles:
+                            await channel.set_permissions(
+                                mod_role,
+                                send_messages=True,
+                                manage_messages=True,
+                                embed_links=True,
+                                read_messages=True,
+                                reason="Configuración automática - Rol moderador"
+                            )
+                        
+                        print(f"✅ Permisos configurados para {channel.name}")
+                        
+                    except Exception as perm_error:
+                        print(f"❌ Error configurando permisos en {channel.name}: {perm_error}")
+                
+            print(f"✅ Permisos de canales configurados para {guild.name}")
+            
+        except Exception as e:
+            print(f"❌ Error configurando permisos de canales: {e}")
 
 def setup(bot):
-    bot.add_cog(AutoRules(bot))
+    return AutoRules(bot)

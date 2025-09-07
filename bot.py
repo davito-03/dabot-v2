@@ -224,7 +224,8 @@ async def main():
             ("HelpSystem", "modules.help_system", None),  # Sistema de ayuda completo
             ("Welcome", "modules.welcome", "welcome"),
             # ("Levels", "modules.levels", "levels"),  # DESHABILITADO - Duplicado con level_system
-            ("LevelSystem", "modules.level_system", "levels"),
+            # ("LevelSystem", "modules.level_system", "levels"),  # DESHABILITADO - Reemplazado por AdvancedLevelSystem
+            ("AdvancedLevelSystem", "modules.advanced_level_system", "levels"),  # Nuevo sistema completo
             
             # Módulos de moderación avanzada
             ("AutoMod", "modules.automod", "moderation"),

@@ -1684,6 +1684,24 @@ class ServerTypeSelector(nextcord.ui.View):
                 value="community",
                 description="Para comunidades generales y sociales",
                 emoji="🌟"
+            ),
+            nextcord.SelectOption(
+                label="🎵 Servidor de Música",
+                value="music",
+                description="Para comunidades de música y artistas",
+                emoji="🎵"
+            ),
+            nextcord.SelectOption(
+                label="🌸 Servidor de Anime",
+                value="anime",
+                description="Para comunidades otaku y anime",
+                emoji="🌸"
+            ),
+            nextcord.SelectOption(
+                label="🏆 Equipo Esports",
+                value="esports",
+                description="Para equipos y organizaciones de esports",
+                emoji="🏆"
             )
         ]
     )

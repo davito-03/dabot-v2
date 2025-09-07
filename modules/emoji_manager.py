@@ -13,7 +13,7 @@ class EmojiManager(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession()
+        self.session = None  # Se iniciará en setup_hook o cuando sea necesario
         
         # URLs de APIs de emojis
         self.emoji_sources = {
@@ -49,6 +49,11 @@ class EmojiManager(commands.Cog):
             ]
         }
     
+    async def _ensure_session(self):
+        """asegurar que la sesión aiohttp esté iniciada"""
+        if self.session is None or self.session.closed:
+            self.session = aiohttp.ClientSession()
+    
     @nextcord.slash_command(
         name="emoji",
         description="Comandos para gestionar emojis del servidor"
@@ -82,6 +87,9 @@ class EmojiManager(commands.Cog):
         await interaction.response.defer()
         
         try:
+            # Asegurar que la sesión esté iniciada
+            await self._ensure_session()
+            
             # Descargar imagen
             async with self.session.get(url) as response:
                 if response.status != 200:
@@ -223,6 +231,9 @@ class EmojiManager(commands.Cog):
                     }
                     continue  # Saltar URLs de ejemplo
                 
+                # Asegurar que la sesión esté iniciada
+                await self._ensure_session()
+                
                 async with self.session.get(url) as response:
                     if response.status == 200:
                         image_data = await response.read()
@@ -297,6 +308,9 @@ class EmojiManager(commands.Cog):
         name, url = random.choice(popular_emojis)
         
         try:
+            # Asegurar que la sesión esté iniciada
+            await self._ensure_session()
+            
             async with self.session.get(url) as response:
                 if response.status == 200:
                     image_data = await response.read()
@@ -401,9 +415,10 @@ class EmojiManager(commands.Cog):
             logger.error(f"Error eliminando emoji: {e}")
             await interaction.response.send_message("❌ Error eliminando el emoji.")
     
-    async def cog_unload(self):
+    def cog_unload(self):
         """cerrar sesión al descargar"""
-        await self.session.close()
+        # La sesión se cerrará automáticamente al finalizar el programa
+        pass
 
 def setup(bot):
     """cargar el cog"""

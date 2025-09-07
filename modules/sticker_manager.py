@@ -12,7 +12,7 @@ class StickerManager(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession()
+        self.session = None  # Se iniciará en setup_hook o cuando sea necesario
         
         # Packs de stickers populares
         self.sticker_packs = {
@@ -72,6 +72,11 @@ class StickerManager(commands.Cog):
             }
         }
     
+    async def _ensure_session(self):
+        """asegurar que la sesión aiohttp esté iniciada"""
+        if self.session is None or self.session.closed:
+            self.session = aiohttp.ClientSession()
+    
     @nextcord.slash_command(
         name="sticker",
         description="Comandos para gestionar stickers del servidor"
@@ -123,6 +128,9 @@ class StickerManager(commands.Cog):
         await interaction.response.defer()
         
         try:
+            # Asegurar que la sesión esté iniciada
+            await self._ensure_session()
+            
             # Descargar imagen
             async with self.session.get(url) as response:
                 if response.status != 200:
@@ -443,9 +451,10 @@ class StickerManager(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
     
-    async def cog_unload(self):
+    def cog_unload(self):
         """cerrar sesión al descargar"""
-        await self.session.close()
+        # La sesión se cerrará automáticamente al finalizar el programa
+        pass
 
 def setup(bot):
     """cargar el cog"""

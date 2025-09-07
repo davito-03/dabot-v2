@@ -223,7 +223,7 @@ async def main():
             ("AdminCommands", "modules.admin_commands", None),  # Comandos administrativos
             ("HelpSystem", "modules.help_system", None),  # Sistema de ayuda completo
             ("Welcome", "modules.welcome", "welcome"),
-            ("Levels", "modules.levels", "levels"),
+            # ("Levels", "modules.levels", "levels"),  # DESHABILITADO - Duplicado con level_system
             ("LevelSystem", "modules.level_system", "levels"),
             
             # Módulos de moderación avanzada
@@ -232,9 +232,9 @@ async def main():
             ("Appeals", "modules.appeals", "moderation.appeals"),
             
             # Módulos de sistemas integrados nuevos
-            ("AutoRules", "modules.auto_rules", None),  # Sistema de reglas automáticas
-            ("AdvancedLevelSystem", "modules.advanced_levels", None),  # Sistema de niveles avanzado
-            ("IntegratedModeration", "modules.integrated_moderation", None),  # Moderación integrada
+            # ("AutoRules", "modules.auto_rules", None),  # TEMPORAL - Verificar si existe
+            # ("AdvancedLevelSystem", "modules.advanced_levels", None),  # TEMPORAL - Verificar si existe
+            # ("IntegratedModeration", "modules.integrated_moderation", None),  # TEMPORAL - Verificar si existe
             ("DestructiveCommands", "modules.destructive_commands", None),  # Comandos destructivos
             
             # Módulo de configuración completa de servidores

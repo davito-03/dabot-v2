@@ -270,19 +270,20 @@ class HelpCommands(commands.Cog):
             logger.error(f"Error en comando help: {e}")
             await ctx.send("❌ Error al mostrar la ayuda.")
     
-    @nextcord.slash_command(name="help", description="Muestra ayuda sobre los comandos del bot")
-    async def slash_help(
-        self,
-        interaction: nextcord.Interaction,
-        category: str = nextcord.SlashOption(
-            description="Categoría de comandos",
-            choices=["moderacion", "entretenimiento", "musica", "tareas", "general"],
-            required=False
-        )
-    ):
-        """Comando slash para ayuda"""
-        ctx = await commands.Context.from_interaction(interaction)
-        await self.help_command(ctx, category)
+    # COMANDO HELP DESHABILITADO - Usando help_system.py en su lugar
+    # @nextcord.slash_command(name="help", description="Muestra ayuda sobre los comandos del bot")
+    # async def slash_help(
+    #     self,
+    #     interaction: nextcord.Interaction,
+    #     category: str = nextcord.SlashOption(
+    #         description="Categoría de comandos",
+    #         choices=["moderacion", "entretenimiento", "musica", "tareas", "general"],
+    #         required=False
+    #     )
+    # ):
+    #     """Comando slash para ayuda"""
+    #     ctx = await commands.Context.from_interaction(interaction)
+    #     await self.help_command(ctx, category)
     
     @commands.command(name='ping')
     async def ping(self, ctx):

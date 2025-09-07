@@ -28,5 +28,35 @@
             "raid_alerts": null,
             "automod_log": null
         }
+    },
+    "1412999864631165101": {
+        "logs": {
+            "moderation": null,
+            "messages": null,
+            "voice": null,
+            "joins": null,
+            "roles": null,
+            "channels": null,
+            "general": null
+        },
+        "notifications": {
+            "level_up": null,
+            "warnings": null,
+            "welcome": null,
+            "goodbye": null,
+            "announcements": null
+        },
+        "features": {
+            "tickets": null,
+            "suggestions": null,
+            "reports": null,
+            "music_requests": null,
+            "bot_commands": null
+        },
+        "auto_moderation": {
+            "spam_alerts": null,
+            "raid_alerts": null,
+            "automod_log": null
+        }
     }
 }

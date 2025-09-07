@@ -163,6 +163,15 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "🎫┃tickets", "type": "text", "topic": "Sistema de soporte"},
                             {"name": "🔧 Mod Voice", "type": "voice", "limit": 5, "staff_only": True}
                         ]
+                    },
+                    {
+                        "name": "📊 ESTADÍSTICAS & INFORMACIÓN",
+                        "channels": [
+                            {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📊┃estadísticas", "type": "text", "topic": "Estadísticas del servidor"},
+                            {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"},
+                            {"name": "🎯┃logros", "type": "text", "topic": "Logros y reconocimientos"}
+                        ]
                     }
                 ],
                 "roles": [
@@ -307,6 +316,14 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📊┃mod-logs", "type": "text", "topic": "Logs de moderación", "staff_only": True},
                             {"name": "🎫┃soporte", "type": "text", "topic": "Sistema de soporte"},
                             {"name": "🔧 Staff Voice", "type": "voice", "limit": 5, "staff_only": True}
+                        ]
+                    },
+                    {
+                        "name": "📊 ESTADÍSTICAS & INFO",
+                        "channels": [
+                            {"name": "🎉┃anuncios-nivel", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "📈┃stats", "type": "text", "topic": "Estadísticas de la comunidad"},
+                            {"name": "📋┃info", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     }
                 ],
@@ -509,13 +526,13 @@ class ServerSetupWizard(commands.Cog):
             
             success_embed.add_field(
                 name="🤖 Sistemas Configurados",
-                value="• Sistema de tickets\n• VoiceMaster\n• Logs de moderación\n• Bienvenidas\n• Auto-roles",
+                value="• Sistema de niveles con roles automáticos\n• Anuncios de subida de nivel\n• Estadísticas de usuarios\n• Sistema de invitaciones permanentes\n• Tickets y VoiceMaster\n• Logs de moderación\n• Bienvenidas y auto-roles",
                 inline=True
             )
             
             success_embed.add_field(
                 name="🎯 Próximos Pasos",
-                value="• Personaliza los roles\n• Ajusta permisos si es necesario\n• Usa `/test all` para verificar\n• ¡Disfruta tu servidor!",
+                value="• Personaliza los roles y permisos\n• Revisa las invitaciones creadas\n• Usa `/nivel` para ver el sistema de XP\n• Usa `/stats` para ver estadísticas\n• ¡Disfruta tu servidor completamente configurado!",
                 inline=False
             )
             
@@ -563,15 +580,16 @@ class ServerSetupWizard(commands.Cog):
                 except Exception as e:
                     logger.error(f"❌ Error configurando reglas automáticas: {e}")
             
-            # 2. Configurar sistema de niveles avanzado
-            if self.level_system:
-                try:
-                    level_roles = await self.level_system.setup_level_system(guild, template_id)
-                    logger.info(f"✅ Sistema de niveles configurado con {len(level_roles)} roles")
-                except Exception as e:
-                    logger.error(f"❌ Error configurando sistema de niveles: {e}")
+            # 2. Configurar sistema de niveles avanzado CON ANUNCIOS Y ROLES
+            await self.setup_level_system(guild, channels, roles, template_id)
             
-            # 3. Configurar moderación integrada
+            # 3. Configurar estadísticas de usuarios
+            await self.setup_user_stats(guild, channels, template_id)
+            
+            # 4. Configurar sistema de invitaciones del servidor
+            await self.setup_server_invites(guild, channels, template_id)
+            
+            # 5. Configurar moderación integrada
             if self.moderation:
                 try:
                     await self.moderation.setup_moderation_system(guild, template_id)
@@ -874,6 +892,354 @@ class ServerSetupWizard(commands.Cog):
             
         except Exception as e:
             logger.error(f"Error configurando permisos especiales: {e}")
+    
+    async def setup_level_system(self, guild: nextcord.Guild, channels: Dict, roles: Dict, template_id: str):
+        """Configurar sistema de niveles con anuncios y roles de nivel"""
+        try:
+            # Base de datos para el sistema de niveles
+            conn = sqlite3.connect('bot_data.db')
+            cursor = conn.cursor()
+            
+            # Crear tabla de configuración de niveles si no existe
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS level_config (
+                    guild_id TEXT PRIMARY KEY,
+                    announcement_channel TEXT,
+                    level_up_message TEXT,
+                    enabled BOOLEAN DEFAULT 1
+                )
+            ''')
+            
+            # Crear tabla de roles de nivel si no existe
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS level_roles (
+                    guild_id TEXT,
+                    level INTEGER,
+                    role_id TEXT,
+                    role_name TEXT,
+                    PRIMARY KEY (guild_id, level)
+                )
+            ''')
+            
+            guild_id = str(guild.id)
+            
+            # Configurar canal de anuncios de nivel
+            announcement_channel = None
+            for channel_name in ["📈┃level-ups", "🎉┃anuncios", "💬┃general", "💬┃chat-general"]:
+                if channel_name in channels:
+                    announcement_channel = channels[channel_name]
+                    break
+            
+            if announcement_channel:
+                # Configurar sistema de niveles
+                cursor.execute('''
+                    INSERT OR REPLACE INTO level_config 
+                    (guild_id, announcement_channel, level_up_message, enabled) 
+                    VALUES (?, ?, ?, ?)
+                ''', (
+                    guild_id,
+                    str(announcement_channel.id),
+                    "🎉 ¡Felicidades {user}! Has subido al **Nivel {level}**! 🎊",
+                    True
+                ))
+                
+                # Crear roles de nivel según el tipo de servidor
+                level_roles_config = {
+                    "gaming": [
+                        (5, "🏅 Novato", 0x95a5a6),
+                        (10, "⚔️ Aventurero", 0x3498db),
+                        (20, "🛡️ Guerrero", 0x9b59b6),
+                        (35, "👑 Héroe", 0xe67e22),
+                        (50, "🌟 Leyenda", 0xf1c40f),
+                        (75, "💎 Maestro", 0x1abc9c),
+                        (100, "🔥 Dios del Gaming", 0xe74c3c)
+                    ],
+                    "community": [
+                        (5, "🌱 Nuevo Miembro", 0x95a5a6),
+                        (10, "💬 Conversador", 0x3498db),
+                        (25, "🤝 Colaborador", 0x9b59b6),
+                        (40, "🌟 Estrella", 0xe67e22),
+                        (60, "💎 VIP", 0xf1c40f),
+                        (80, "👑 Elite", 0x1abc9c),
+                        (100, "🏆 Leyenda de la Comunidad", 0xe74c3c)
+                    ],
+                    "dev": [
+                        (5, "🔰 Junior Dev", 0x95a5a6),
+                        (15, "💻 Developer", 0x3498db),
+                        (30, "🚀 Senior Dev", 0x9b59b6),
+                        (50, "🏗️ Architect", 0xe67e22),
+                        (75, "🧠 Tech Lead", 0xf1c40f),
+                        (100, "🔥 Code Master", 0xe74c3c)
+                    ],
+                    "streamer": [
+                        (5, "👀 Viewer", 0x95a5a6),
+                        (10, "⭐ Fan", 0x3498db),
+                        (25, "💎 VIP", 0x9b59b6),
+                        (40, "👑 Moderador VIP", 0xe67e22),
+                        (60, "🎭 Streamer Amigo", 0xf1c40f),
+                        (100, "🏆 Leyenda del Stream", 0xe74c3c)
+                    ]
+                }
+                
+                roles_for_template = level_roles_config.get(template_id, level_roles_config["community"])
+                
+                # Crear roles de nivel
+                created_level_roles = 0
+                for level, role_name, color in roles_for_template:
+                    try:
+                        # Verificar si el rol ya existe
+                        existing_role = nextcord.utils.get(guild.roles, name=role_name)
+                        if existing_role:
+                            role = existing_role
+                        else:
+                            # Crear el rol
+                            role = await guild.create_role(
+                                name=role_name,
+                                color=nextcord.Color(color),
+                                hoist=True,
+                                reason=f"Rol de nivel {level} - Configuración automática"
+                            )
+                        
+                        # Guardar en base de datos
+                        cursor.execute('''
+                            INSERT OR REPLACE INTO level_roles 
+                            (guild_id, level, role_id, role_name) 
+                            VALUES (?, ?, ?, ?)
+                        ''', (guild_id, level, str(role.id), role_name))
+                        
+                        created_level_roles += 1
+                        await asyncio.sleep(0.5)  # Evitar rate limit
+                        
+                    except Exception as e:
+                        logger.error(f"Error creando rol de nivel {level} ({role_name}): {e}")
+                
+                conn.commit()
+                logger.info(f"✅ Sistema de niveles configurado: {created_level_roles} roles de nivel creados")
+                
+                # Enviar mensaje de confirmación al canal
+                embed = nextcord.Embed(
+                    title="🎉 Sistema de Niveles Activado",
+                    description=f"¡El sistema de niveles está ahora activo en **{guild.name}**!",
+                    color=nextcord.Color.gold()
+                )
+                embed.add_field(
+                    name="📊 Roles de Nivel",
+                    value=f"Se han creado **{created_level_roles}** roles de nivel automáticos",
+                    inline=False
+                )
+                embed.add_field(
+                    name="📢 Anuncios",
+                    value=f"Los anuncios de subida de nivel aparecerán en {announcement_channel.mention}",
+                    inline=False
+                )
+                embed.add_field(
+                    name="🎯 ¿Cómo funciona?",
+                    value="• Gana XP chateando en el servidor\n• Sube de nivel automáticamente\n• Recibe roles especiales por tu actividad\n• Usa `/nivel` para ver tu progreso",
+                    inline=False
+                )
+                
+                await announcement_channel.send(embed=embed)
+                
+            conn.close()
+            
+        except Exception as e:
+            logger.error(f"Error configurando sistema de niveles: {e}")
+    
+    async def setup_user_stats(self, guild: nextcord.Guild, channels: Dict, template_id: str):
+        """Configurar sistema de estadísticas de usuarios"""
+        try:
+            # Base de datos para estadísticas
+            conn = sqlite3.connect('bot_data.db')
+            cursor = conn.cursor()
+            
+            # Crear tabla de estadísticas si no existe
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS user_stats (
+                    guild_id TEXT,
+                    user_id TEXT,
+                    messages_sent INTEGER DEFAULT 0,
+                    voice_time INTEGER DEFAULT 0,
+                    commands_used INTEGER DEFAULT 0,
+                    reactions_given INTEGER DEFAULT 0,
+                    join_date TEXT,
+                    last_active TEXT,
+                    PRIMARY KEY (guild_id, user_id)
+                )
+            ''')
+            
+            # Crear tabla de estadísticas del servidor
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS server_stats (
+                    guild_id TEXT PRIMARY KEY,
+                    stats_channel TEXT,
+                    total_messages INTEGER DEFAULT 0,
+                    total_members INTEGER DEFAULT 0,
+                    active_members INTEGER DEFAULT 0,
+                    last_updated TEXT
+                )
+            ''')
+            
+            guild_id = str(guild.id)
+            
+            # Configurar canal de estadísticas
+            stats_channel = None
+            for channel_name in ["📊┃estadísticas", "📈┃stats", "📊┃server-stats"]:
+                if channel_name in channels:
+                    stats_channel = channels[channel_name]
+                    break
+            
+            if stats_channel:
+                # Configurar estadísticas del servidor
+                cursor.execute('''
+                    INSERT OR REPLACE INTO server_stats 
+                    (guild_id, stats_channel, total_members) 
+                    VALUES (?, ?, ?)
+                ''', (guild_id, str(stats_channel.id), guild.member_count))
+                
+                # Crear embed inicial de estadísticas
+                embed = nextcord.Embed(
+                    title=f"📊 Estadísticas de {guild.name}",
+                    color=nextcord.Color.blue()
+                )
+                embed.add_field(
+                    name="👥 Miembros",
+                    value=f"**{guild.member_count}** miembros totales",
+                    inline=True
+                )
+                embed.add_field(
+                    name="📈 Canales",
+                    value=f"**{len(guild.channels)}** canales",
+                    inline=True
+                )
+                embed.add_field(
+                    name="🎭 Roles",
+                    value=f"**{len(guild.roles)}** roles",
+                    inline=True
+                )
+                embed.add_field(
+                    name="🤖 Sistema de Stats",
+                    value="• Estadísticas de mensajes\n• Tiempo en canales de voz\n• Comandos utilizados\n• Actividad general",
+                    inline=False
+                )
+                embed.set_footer(text="Estadísticas actualizadas automáticamente cada hora")
+                
+                # Enviar mensaje de estadísticas
+                await stats_channel.send(embed=embed)
+                
+                logger.info(f"✅ Sistema de estadísticas configurado en {stats_channel.name}")
+            
+            conn.commit()
+            conn.close()
+            
+        except Exception as e:
+            logger.error(f"Error configurando estadísticas: {e}")
+    
+    async def setup_server_invites(self, guild: nextcord.Guild, channels: Dict, template_id: str):
+        """Configurar sistema de invitaciones del servidor"""
+        try:
+            # Crear invitaciones permanentes para canales principales
+            invite_channels = []
+            
+            # Buscar canal principal para invitación
+            main_channel = None
+            for channel_name in ["👋┃bienvenida", "💬┃general", "📢┃anuncios", "💬┃chat-general"]:
+                if channel_name in channels:
+                    main_channel = channels[channel_name]
+                    break
+            
+            if main_channel:
+                # Crear invitación permanente
+                invite = await main_channel.create_invite(
+                    max_age=0,  # Sin expiración
+                    max_uses=0,  # Usos ilimitados
+                    unique=False,
+                    reason="Invitación permanente del servidor - Configuración automática"
+                )
+                
+                invite_channels.append({
+                    "channel": main_channel.name,
+                    "invite": invite.url
+                })
+                
+                # Buscar canal de invitaciones o información
+                info_channel = None
+                for channel_name in ["📋┃información", "📋┃info", "🔗┃invitaciones", "📢┃anuncios"]:
+                    if channel_name in channels:
+                        info_channel = channels[channel_name]
+                        break
+                
+                if info_channel:
+                    # Crear mensaje con información del servidor e invitación
+                    embed = nextcord.Embed(
+                        title=f"🎉 ¡Bienvenido a {guild.name}!",
+                        description="¡Únete a nuestra increíble comunidad!",
+                        color=nextcord.Color.blue()
+                    )
+                    
+                    # Descripción según tipo de servidor
+                    descriptions = {
+                        "gaming": "🎮 Una comunidad para gamers donde compartir, competir y divertirse juntos",
+                        "community": "🤝 Una comunidad abierta y amigable para todos",
+                        "dev": "💻 Una comunidad de desarrolladores para aprender y compartir conocimiento",
+                        "streamer": "📺 Únete a la comunidad del stream y disfruta del contenido"
+                    }
+                    
+                    embed.description = descriptions.get(template_id, descriptions["community"])
+                    
+                    embed.add_field(
+                        name="🔗 Invitación Permanente",
+                        value=f"[**Únete aquí**]({invite.url})",
+                        inline=False
+                    )
+                    
+                    embed.add_field(
+                        name="📊 Estadísticas del Servidor",
+                        value=f"👥 **{guild.member_count}** miembros\n📈 **{len(guild.channels)}** canales\n🎭 **{len(guild.roles)}** roles",
+                        inline=True
+                    )
+                    
+                    embed.add_field(
+                        name="🎯 Características",
+                        value="• Sistema de niveles\n• Moderación automática\n• Eventos regulares\n• Comunidad activa",
+                        inline=True
+                    )
+                    
+                    if guild.icon:
+                        embed.set_thumbnail(url=guild.icon.url)
+                    
+                    embed.set_footer(text=f"Servidor creado automáticamente • {guild.name}")
+                    
+                    await info_channel.send(embed=embed)
+                    
+                    logger.info(f"✅ Sistema de invitaciones configurado: {invite.url}")
+                
+                # Base de datos para tracking de invitaciones
+                conn = sqlite3.connect('bot_data.db')
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS server_invites (
+                        guild_id TEXT,
+                        invite_code TEXT,
+                        channel_id TEXT,
+                        uses INTEGER DEFAULT 0,
+                        permanent BOOLEAN DEFAULT 1,
+                        created_date TEXT,
+                        PRIMARY KEY (guild_id, invite_code)
+                    )
+                ''')
+                
+                cursor.execute('''
+                    INSERT OR REPLACE INTO server_invites 
+                    (guild_id, invite_code, channel_id, permanent, created_date) 
+                    VALUES (?, ?, ?, ?, datetime('now'))
+                ''', (str(guild.id), invite.code, str(main_channel.id), True))
+                
+                conn.commit()
+                conn.close()
+                
+        except Exception as e:
+            logger.error(f"Error configurando invitaciones: {e}")
 
 class ServerTypeSelector(nextcord.ui.View):
     """Selector de tipo de servidor"""

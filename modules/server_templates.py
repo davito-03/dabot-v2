@@ -41,49 +41,50 @@ class ServerTemplates(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @nextcord.slash_command(name="template", description="Comandos de plantillas de servidor")
-    async def template_group(self, interaction: nextcord.Interaction):
+    @nextcord.slash_command(name="server", description="Comandos de servidor y plantillas")
+    async def server_group(self, interaction: nextcord.Interaction):
         pass
     
-    @template_group.subcommand(name="gaming", description="Plantilla para servidor gaming")
-    async def gaming_template(self, interaction: nextcord.Interaction):
-        """crear plantilla gaming completa"""
-        embed = nextcord.Embed(
-            title="🎮 Configurar Servidor Gaming",
-            description="¿Quieres incluir canales NSFW en tu servidor?",
-            color=nextcord.Color.purple()
+    @server_group.subcommand(name="template", description="Crear plantilla de servidor")
+    async def create_template(
+        self,
+        interaction: nextcord.Interaction,
+        tipo: str = nextcord.SlashOption(
+            description="Tipo de plantilla a crear",
+            choices=["gaming", "comunidad", "estudio", "empresarial", "tech"]
         )
-        embed.add_field(
-            name="⚠️ Contenido NSFW",
-            value="Los canales NSFW están restringidos a usuarios mayores de 18 años y deben cumplir con las reglas de Discord.",
-            inline=False
+    ):
+        """crear plantilla según el tipo seleccionado"""
+        if not interaction.user.guild_permissions.manage_guild:
+            await interaction.response.send_message(
+                "❌ Necesitas permisos de **Gestionar Servidor** para crear plantillas.",
+                ephemeral=True
+            )
+            return
+        
+        # Mensaje de confirmación con opción NSFW
+        embed = nextcord.Embed(
+            title=f"🏗️ Crear Plantilla: {tipo.title()}",
+            description=f"¿Quieres crear una plantilla de servidor tipo **{tipo}**?\n\n⚠️ **¿Incluir canales NSFW?**\nAlgunos servidores prefieren omitir este contenido.",
+            color=nextcord.Color.blue()
         )
         
-        view = NSFWConfirmView(self._create_gaming_template, interaction)
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-    
-    @template_group.subcommand(name="community", description="Plantilla para comunidad general")
-    async def community_template(self, interaction: nextcord.Interaction):
-        """crear plantilla de comunidad"""
-        embed = nextcord.Embed(
-            title="🌟 Configurar Servidor de Comunidad",
-            description="¿Quieres incluir canales NSFW en tu servidor?",
-            color=nextcord.Color.purple()
-        )
-        embed.add_field(
-            name="⚠️ Contenido NSFW",
-            value="Los canales NSFW están restringidos a usuarios mayores de 18 años.",
-            inline=False
-        )
+        # Mapear a los métodos correctos
+        template_methods = {
+            "gaming": self._create_gaming_template,
+            "comunidad": self._create_community_template,
+            "estudio": self._create_study_template,
+            "empresarial": self._create_business_template,
+            "tech": self._create_tech_template
+        }
         
-        view = NSFWConfirmView(self._create_community_template, interaction)
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-    
-    @template_group.subcommand(name="study", description="Plantilla para servidor de estudio")
-    async def study_template(self, interaction: nextcord.Interaction):
-        """crear plantilla de estudio"""
-        # Para servidores de estudio, generalmente no incluimos NSFW
-        await self._create_study_template(interaction, include_nsfw=False)
+        template_method = template_methods.get(tipo)
+        if not template_method:
+            await interaction.response.send_message("❌ Tipo de plantilla no válido.", ephemeral=True)
+            return
+        
+        view = NSFWConfirmView(template_method, interaction)
+        await interaction.response.send_message(embed=embed, view=view)
     
     async def _create_gaming_template(self, interaction: nextcord.Interaction, include_nsfw: bool = False):
         """crear plantilla gaming completa con nuevas funciones"""

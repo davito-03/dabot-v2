@@ -22,7 +22,7 @@ class HelpSystem(commands.Cog):
             required=False,
             choices=[
                 "general", "moderacion", "entretenimiento", "economia",
-                "musica", "tickets", "voicemaster", "servidor", "admin"
+                "musica", "tickets", "voicemaster", "servidor", "emojis", "admin"
             ]
         )
     ):
@@ -52,6 +52,7 @@ class HelpSystem(commands.Cog):
             "🎫 **Tickets**": "`/help categoria:tickets` - Sistema de soporte",
             "🎙️ **VoiceMaster**": "`/help categoria:voicemaster` - Canales de voz temporales",
             "🏗️ **Servidor**": "`/help categoria:servidor` - Plantillas y configuración",
+            "😀 **Emojis & Stickers**": "`/help categoria:emojis` - Personalización visual",
             "⚙️ **Administración**": "`/help categoria:admin` - Comandos administrativos"
         }
         
@@ -96,6 +97,7 @@ class HelpSystem(commands.Cog):
             "tickets": self._get_tickets_help(),
             "voicemaster": self._get_voicemaster_help(),
             "servidor": self._get_server_help(),
+            "emojis": self._get_emojis_help(),
             "admin": self._get_admin_help()
         }
         
@@ -361,6 +363,56 @@ class HelpSystem(commands.Cog):
         embed.add_field(
             name="⚠️ Importante",
             value="Estos comandos requieren permisos de **Gestionar Servidor** o superiores",
+            inline=False
+        )
+        
+        return embed
+    
+    def _get_emojis_help(self):
+        embed = nextcord.Embed(
+            title="😀 Emojis & Stickers",
+            description="Personaliza tu servidor con emojis y stickers chulos",
+            color=nextcord.Color.yellow()
+        )
+        
+        emoji_commands = [
+            "`/emoji add [url] [nombre]` - Añadir emoji desde URL",
+            "`/emoji pack [pack]` - Instalar pack de emojis temático",
+            "`/emoji random` - Añadir emoji aleatorio popular",
+            "`/emoji list` - Ver emojis del servidor",
+            "`/emoji remove [nombre]` - Eliminar emoji del servidor"
+        ]
+        
+        sticker_commands = [
+            "`/sticker add [url] [nombre]` - Añadir sticker personalizado",
+            "`/sticker pack [pack]` - Instalar pack de stickers",
+            "`/sticker search [query]` - Buscar stickers populares",
+            "`/sticker list` - Ver stickers del servidor",
+            "`/sticker remove [id]` - Eliminar sticker",
+            "`/sticker trending` - Ver stickers populares"
+        ]
+        
+        embed.add_field(
+            name="😀 Comandos de Emojis",
+            value="\n".join(emoji_commands),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="📋 Comandos de Stickers",
+            value="\n".join(sticker_commands),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="📦 Packs Disponibles",
+            value="**Emojis:** pepe, kappa, discord, gaming, cute\n**Stickers:** memes, anime, cats, gaming, reactions",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Requisitos",
+            value="• **Emojis:** Permisos de Gestionar Emojis\n• **Stickers:** Gestionar Servidor + Nitro Nivel 2+",
             inline=False
         )
         

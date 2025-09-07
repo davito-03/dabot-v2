@@ -238,7 +238,11 @@ async def main():
             ("DestructiveCommands", "modules.destructive_commands", None),  # Comandos destructivos
             
             # Módulo de configuración completa de servidores
-            ("ServerSetupWizard", "modules.complete_server_setup", None)  # Siempre disponible
+            ("ServerSetupWizard", "modules.complete_server_setup", None),  # Siempre disponible
+            
+            # Módulos de personalización
+            ("EmojiManager", "modules.emoji_manager", None),  # Gestión de emojis
+            ("StickerManager", "modules.sticker_manager", None)  # Gestión de stickers
         ]
         
         for name, module_path, config_key in setup_modules:

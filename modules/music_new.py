@@ -7,75 +7,32 @@ import asyncio
 import datetime
 import logging
 import re
-import subprocess
 import nextcord
 from nextcord.ext import commands
 import yt_dlp
 from collections import deque
 from modules.config_manager import get_config, is_module_enabled
-import requests
-import json
-from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
 # Configuración para yt-dlp
 ytdl_format_options = {
-    'format': 'worst[abr>0]/worst/best',  # Formato más flexible
+    'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
-    'ignoreerrors': True,  # Cambiar a True para continuar con errores
+    'ignoreerrors': False,
     'logtostderr': False,
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0',
-    'prefer_ffmpeg': True,
-    'keepvideo': False,
-    'extractor_args': {
-        'youtube': {
-            'skip': ['hls', 'dash'],
-            'player_skip': ['js']  # Simplificar player_skip
-        }
-    },
-    'http_headers': {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-us,en;q=0.5',
-        'Accept-Encoding': 'gzip,deflate',
-        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
-        'Connection': 'keep-alive'
-    }
+    'source_address': '0.0.0.0'
 }
-
-# Configurar FFmpeg
-def get_ffmpeg_executable():
-    """Obtener la ruta del ejecutable de FFmpeg"""
-    # Intentar rutas comunes
-    ffmpeg_paths = [
-        'ffmpeg',  # En PATH
-        'C:/ffmpeg/bin/ffmpeg.exe',  # Instalación personalizada
-        'C:/Program Files/ffmpeg/bin/ffmpeg.exe',  # Instalación estándar
-    ]
-    
-    for path in ffmpeg_paths:
-        try:
-            subprocess.run([path, '-version'], capture_output=True, check=True)
-            return path
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            continue
-    
-    return 'ffmpeg'  # Valor por defecto
-
-# Configurar FFmpeg
-ffmpeg_executable = get_ffmpeg_executable()
 
 ffmpeg_options = {
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn',
-    'executable': ffmpeg_executable
+    'options': '-vn'
 }
 
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
@@ -96,41 +53,14 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
     async def from_url(cls, url, *, loop=None, stream=False):
         """Crear fuente de audio desde URL"""
         loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
         
-        # Configuración más tolerante para reproducción
-        playback_opts = {
-            'format': 'worst[abr>0]/worst/best',
-            'quiet': True,
-            'no_warnings': True,
-            'ignoreerrors': True,
-            'prefer_ffmpeg': True
-        }
+        if 'entries' in data:
+            # Tomar el primer resultado si es una playlist
+            data = data['entries'][0]
         
-        try:
-            data = await loop.run_in_executor(
-                None, 
-                lambda: yt_dlp.YoutubeDL(playback_opts).extract_info(url, download=not stream)
-            )
-            
-            if 'entries' in data:
-                # Tomar el primer resultado si es una playlist
-                data = data['entries'][0]
-            
-            # Asegurar que tenemos una URL válida
-            if not data.get('url'):
-                raise Exception("No se pudo obtener URL de reproducción")
-            
-            filename = data['url'] if stream else ytdl.prepare_filename(data)
-            return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
-            
-        except Exception as e:
-            logger.error(f"Error creando fuente de audio: {e}")
-            # Intentar con URL directa como último recurso
-            try:
-                return cls(nextcord.FFmpegPCMAudio(url, **ffmpeg_options), data={'title': 'Audio Stream', 'url': url})
-            except Exception as fallback_error:
-                logger.error(f"Error con URL directa: {fallback_error}")
-                raise Exception("No se pudo crear fuente de audio")
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 class MusicQueue:
     """Sistema de cola para música"""
@@ -236,18 +166,15 @@ class MusicSearchView(nextcord.ui.View):
                 
                 embed.set_footer(text=f"Solicitado por {interaction.user.display_name}")
                 
-                # Editar el mensaje original con el embed de confirmación
-                await interaction.message.edit(content=None, embed=embed, view=None)
+                await interaction.edit_original_response(content=None, embed=embed, view=None)
                 
             except Exception as e:
                 logger.error(f"Error al reproducir canción seleccionada: {e}")
-                # Editar el mensaje original con el error
-                error_embed = nextcord.Embed(
-                    title="❌ Error",
-                    description=f"Error al reproducir: {str(e)}",
-                    color=0xff0000
+                await interaction.edit_original_response(
+                    content=f"❌ Error al reproducir: {str(e)}",
+                    embed=None,
+                    view=None
                 )
-                await interaction.message.edit(content=None, embed=error_embed, view=None)
             
             self.stop()
         
@@ -265,9 +192,7 @@ class MusicSearchView(nextcord.ui.View):
             color=0xff0000
         )
         
-        # Usar defer() y luego editar el mensaje
-        await interaction.response.defer()
-        await interaction.message.edit(content=None, embed=embed, view=None)
+        await interaction.response.edit_message(content=None, embed=embed, view=None)
         self.stop()
     
     async def on_timeout(self):
@@ -300,17 +225,9 @@ class Music(commands.Cog):
     async def get_song_info(self, url):
         """Obtener información completa de una canción"""
         try:
-            # Configuración más simple para obtener info
-            simple_opts = {
-                'quiet': True,
-                'no_warnings': True,
-                'format': 'worst[abr>0]/worst/best',
-                'ignoreerrors': True
-            }
-            
             data = await self.bot.loop.run_in_executor(
                 None, 
-                lambda: yt_dlp.YoutubeDL(simple_opts).extract_info(url, download=False)
+                lambda: ytdl.extract_info(url, download=False)
             )
             
             if 'entries' in data:
@@ -322,7 +239,7 @@ class Music(commands.Cog):
                 duration_str = f"{int(minutes):02d}:{int(seconds):02d}"
             
             return {
-                'url': data.get('url', url),  # Usar URL original como respaldo
+                'url': data['url'],
                 'title': data.get('title', 'Título desconocido'),
                 'duration': data.get('duration', 0),
                 'duration_str': duration_str,
@@ -332,17 +249,7 @@ class Music(commands.Cog):
             }
         except Exception as e:
             logger.error(f"Error obteniendo información de canción: {e}")
-            
-            # Información básica como respaldo
-            return {
-                'url': url,
-                'title': 'Video de YouTube',
-                'duration': 0,
-                'duration_str': 'N/A',
-                'uploader': 'Desconocido',
-                'thumbnail': None,
-                'webpage_url': url
-            }
+            return None
     
     async def play_next_song(self, guild):
         """Reproducir siguiente canción en la cola"""
@@ -368,17 +275,57 @@ class Music(commands.Cog):
     
     async def _search_youtube(self, query: str, limit: int = 5):
         """Buscar videos en YouTube y devolver resultados"""
-        
-        # Verificar si contiene errores comunes que indican que debemos usar método alternativo
-        error_keywords = [
-            "Sign in to confirm you're not a bot",
-            "Requested format is not available",
-            "This video is unavailable"
-        ]
-        
-        # Saltar directamente al método alternativo si sabemos que yt-dlp tendrá problemas
-        logger.info("Usando búsqueda alternativa directamente para mayor confiabilidad...")
-        return await self._search_youtube_alternative(query, limit)
+        try:
+            ydl_opts = {
+                'quiet': True,
+                'no_warnings': True,
+                'extract_flat': False,
+                'default_search': f'ytsearch{limit}:',
+                'skip_download': True,
+            }
+            
+            data = await self.bot.loop.run_in_executor(
+                None,
+                lambda: yt_dlp.YoutubeDL(ydl_opts).extract_info(query, download=False)
+            )
+            
+            if 'entries' in data:
+                results = []
+                for entry in data['entries']:
+                    if entry:
+                        duration_str = "N/A"
+                        if entry.get('duration'):
+                            minutes, seconds = divmod(entry['duration'], 60)
+                            duration_str = f"{int(minutes):02d}:{int(seconds):02d}"
+                        
+                        results.append({
+                            'title': entry.get('title', 'Título desconocido'),
+                            'url': entry.get('webpage_url', entry.get('url')),
+                            'duration': entry.get('duration', 0),
+                            'duration_str': duration_str,
+                            'uploader': entry.get('uploader', 'Desconocido'),
+                            'view_count': self._format_views(entry.get('view_count', 0)),
+                            'thumbnail': entry.get('thumbnail')
+                        })
+                return results
+            else:
+                duration_str = "N/A"
+                if data.get('duration'):
+                    minutes, seconds = divmod(data['duration'], 60)
+                    duration_str = f"{int(minutes):02d}:{int(seconds):02d}"
+                
+                return [{
+                    'title': data.get('title', 'Título desconocido'),
+                    'url': data.get('webpage_url', data.get('url')),
+                    'duration': data.get('duration', 0),
+                    'duration_str': duration_str,
+                    'uploader': data.get('uploader', 'Desconocido'),
+                    'view_count': self._format_views(data.get('view_count', 0)),
+                    'thumbnail': data.get('thumbnail')
+                }]
+        except Exception as e:
+            logger.error(f"Error en búsqueda de YouTube: {e}")
+            return []
     
     def _format_views(self, views):
         """Formatear número de visualizaciones"""
@@ -390,81 +337,6 @@ class Music(commands.Cog):
             return f"{views/1000:.1f}K"
         else:
             return str(views)
-    
-    async def _search_youtube_alternative(self, query: str, limit: int = 5):
-        """Búsqueda alternativa usando requests cuando yt-dlp falla"""
-        try:
-            search_query = quote(query)
-            url = f"https://www.youtube.com/results?search_query={search_query}"
-            
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'DNT': '1',
-                'Connection': 'keep-alive',
-            }
-            
-            response = await self.bot.loop.run_in_executor(
-                None,
-                lambda: requests.get(url, headers=headers, timeout=10)
-            )
-            
-            if response.status_code == 200:
-                # Buscar datos JSON en la página
-                pattern = r'var ytInitialData = ({.*?});'
-                match = re.search(pattern, response.text)
-                
-                if match:
-                    data = json.loads(match.group(1))
-                    
-                    # Extraer resultados
-                    results = []
-                    try:
-                        contents = data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']
-                        
-                        for item in contents[:limit]:
-                            if 'videoRenderer' in item:
-                                video = item['videoRenderer']
-                                
-                                # Extraer información básica
-                                video_id = video.get('videoId', '')
-                                title = video.get('title', {}).get('runs', [{}])[0].get('text', 'Título desconocido')
-                                
-                                # Extraer canal
-                                channel = 'Desconocido'
-                                if 'ownerText' in video:
-                                    channel = video['ownerText']['runs'][0]['text']
-                                
-                                # Extraer duración
-                                duration_str = 'N/A'
-                                if 'lengthText' in video:
-                                    duration_str = video['lengthText']['simpleText']
-                                
-                                # Extraer thumbnail
-                                thumbnail = None
-                                if 'thumbnail' in video and 'thumbnails' in video['thumbnail']:
-                                    thumbnail = video['thumbnail']['thumbnails'][-1]['url']
-                                
-                                results.append({
-                                    'title': title,
-                                    'url': f'https://www.youtube.com/watch?v={video_id}',
-                                    'duration': 0,
-                                    'duration_str': duration_str,
-                                    'uploader': channel,
-                                    'view_count': 'N/A',
-                                    'thumbnail': thumbnail
-                                })
-                    
-                    except Exception as parse_error:
-                        logger.error(f"Error parseando resultados alternativos: {parse_error}")
-                        return []
-                    
-                    return results
-                    
-        except Exception as e:
-            logger.error(f"Error en búsqueda alternativa: {e}")
-            return []
     
     async def _play_direct_url(self, interaction, url):
         """Reproducir URL directa sin búsqueda"""
@@ -491,13 +363,12 @@ class Music(commands.Cog):
                 if data.get('thumbnail'):
                     embed.set_thumbnail(url=data['thumbnail'])
                 
-                # Usar followup.send en lugar de edit_original_response
-                await interaction.followup.send(embed=embed)
+                await interaction.edit_original_response(content=None, embed=embed)
             else:
-                await interaction.followup.send("❌ No se pudo obtener información de la canción.")
+                await interaction.edit_original_response(content="❌ No se pudo obtener información de la canción.")
         except Exception as e:
             logger.error(f"Error reproduciendo URL directa: {e}")
-            await interaction.followup.send(f"❌ Error al reproducir: {str(e)}")
+            await interaction.edit_original_response(content=f"❌ Error al reproducir: {str(e)}")
 
     @nextcord.slash_command(name="play", description="Reproduce música desde YouTube")
     async def slash_play(
@@ -534,12 +405,11 @@ class Music(commands.Cog):
                 return
             
             # Si es una búsqueda, mostrar resultados
-            search_msg = await interaction.followup.send(f"🔍 Buscando: **{search}**...")
+            await interaction.followup.send(f"🔍 Buscando: **{search}**...")
             search_results = await self._search_youtube(search, limit=5)
             
             if not search_results:
-                # Editar el mensaje de búsqueda con el error
-                await search_msg.edit(content="❌ No se encontraron resultados para tu búsqueda.")
+                await interaction.edit_original_response(content="❌ No se encontraron resultados para tu búsqueda.")
                 return
             
             # Crear embed con resultados
@@ -561,8 +431,7 @@ class Music(commands.Cog):
             
             # Crear vista con botones de selección
             view = MusicSearchView(self, search_results, interaction.user)
-            # Editar el mensaje de búsqueda con el embed y los botones
-            await search_msg.edit(content=None, embed=embed, view=view)
+            await interaction.edit_original_response(content=None, embed=embed, view=view)
             
         except Exception as e:
             logger.error(f"Error en comando play: {e}")

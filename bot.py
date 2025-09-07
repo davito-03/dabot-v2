@@ -222,7 +222,16 @@ async def main():
             # Módulos de moderación avanzada
             ("AutoMod", "modules.automod", "moderation"),
             ("ModerationRoles", "modules.moderation_roles", "moderation"),
-            ("Appeals", "modules.appeals", "moderation.appeals")
+            ("Appeals", "modules.appeals", "moderation.appeals"),
+            
+            # Módulos de sistemas integrados nuevos
+            ("AutoRules", "modules.auto_rules", None),  # Sistema de reglas automáticas
+            ("AdvancedLevelSystem", "modules.advanced_levels", None),  # Sistema de niveles avanzado
+            ("IntegratedModeration", "modules.integrated_moderation", None),  # Moderación integrada
+            ("DestructiveCommands", "modules.destructive_commands", None),  # Comandos destructivos
+            
+            # Módulo de configuración completa de servidores
+            ("ServerSetupWizard", "modules.complete_server_setup", None)  # Siempre disponible
         ]
         
         for name, module_path, config_key in setup_modules:
@@ -244,12 +253,13 @@ async def main():
                         continue
                     
                     # Ejecutar setup
-                    cog_instance = module.setup(bot)
-                    if cog_instance is not None:
-                        bot.add_cog(cog_instance)  # Sin await aquí
-                        logger.info(f"✅ {name} cargado exitosamente")
-                    else:
-                        logger.error(f"❌ {name} setup devolvió None")
+                    result = module.setup(bot)
+                    
+                    # Si setup devuelve una instancia, añadirla al bot
+                    if result is not None:
+                        bot.add_cog(result)
+                    
+                    logger.info(f"✅ {name} cargado exitosamente")
                         
                 except ImportError as import_error:
                     logger.error(f"❌ Error importando {name}: {import_error}")

@@ -4,7 +4,11 @@ import json
 import os
 import logging
 from datetime import datetime
-from .config_manager import get_config
+
+try:
+    from .config_manager import get_config
+except ImportError:
+    from modules.config_manager import get_config
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,11 @@ import nextcord
 from nextcord.ext import commands
 from typing import Optional, List
 import json
-from .server_manager import ServerConfigDB
+
+try:
+    from .server_manager import ServerConfigDB
+except ImportError:
+    from modules.server_manager import ServerConfigDB
 
 logger = logging.getLogger(__name__)
 

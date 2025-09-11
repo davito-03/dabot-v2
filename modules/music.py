@@ -1,6 +1,7 @@
 """
 Módulo de Música para el bot de Discord
 Incluye reproducción de música de YouTube con sistema de cola y búsqueda con resultados
+NOTA: En entornos de servidor (Render, Heroku) puede tener limitaciones de voz
 """
 
 import asyncio
@@ -16,8 +17,48 @@ from modules.config_manager import get_config, is_module_enabled
 import requests
 import json
 from urllib.parse import quote
+import os
 
 logger = logging.getLogger(__name__)
+
+# Sistema de detección de errores persistentes
+class VoiceErrorTracker:
+    def __init__(self):
+        self.error_count = 0
+        self.last_error_time = None
+        self.disabled = False
+        self.error_threshold = 3  # Deshabilitar después de 3 errores consecutivos
+        
+    def add_error(self, error_type="unknown"):
+        """Registrar un error de voz"""
+        self.error_count += 1
+        self.last_error_time = datetime.datetime.now()
+        
+        logger.warning(f"Error de voz #{self.error_count}: {error_type}")
+        
+        if self.error_count >= self.error_threshold:
+            self.disabled = True
+            logger.error("🚨 Funcionalidad de voz DESHABILITADA debido a errores persistentes")
+            
+    def reset_errors(self):
+        """Resetear contador de errores (cuando hay éxito)"""
+        if self.error_count > 0:
+            logger.info("✅ Errores de voz reseteados - conexión exitosa")
+        self.error_count = 0
+        self.last_error_time = None
+        
+    def is_disabled(self):
+        """Verificar si la funcionalidad está deshabilitada"""
+        return self.disabled
+        
+    def force_enable(self):
+        """Forzar habilitación (para pruebas)"""
+        self.disabled = False
+        self.error_count = 0
+        logger.info("🔧 Funcionalidad de voz forzada a habilitada")
+
+# Instancia global del tracker
+voice_error_tracker = VoiceErrorTracker()
 
 # Configuración para yt-dlp (optimizada para servidores)
 ytdl_format_options = {
@@ -263,7 +304,7 @@ class MusicSearchView(nextcord.ui.View):
                 queue.add(selected_song)
                 
                 # Reproducir si no hay nada sonando
-                if not interaction.guild.voice_client.is_playing():
+                if not (interaction.guild.voice_client and interaction.guild.voice_client.is_playing()):
                     await self.music_cog.play_next_song(interaction.guild)
                     status = "🎵 Reproduciendo ahora"
                 else:
@@ -333,12 +374,18 @@ class MusicSearchView(nextcord.ui.View):
             pass
 
 class Music(commands.Cog):
-    """Clase para comandos de música"""
+    """Clase para comandos de música con detección automática de problemas"""
     
     def __init__(self, bot):
         self.bot = bot
         self.queues = {}  # Diccionario de colas por servidor
         self.server_environment = self._detect_server_environment()
+        self.voice_errors = voice_error_tracker
+        
+        # Verificar si la música debe estar deshabilitada por defecto
+        if os.getenv('MUSIC_DISABLED', '').lower() == 'true':
+            self.voice_errors.disabled = True
+            logger.warning("🚫 Música deshabilitada por variable de entorno MUSIC_DISABLED")
         
         # Advertencia para entornos de servidor
         if self.server_environment:
@@ -368,6 +415,14 @@ class Music(commands.Cog):
             return 'Container'
         
         return None
+    
+    def _is_voice_available(self):
+        """Verificar si la funcionalidad de voz está disponible"""
+        if self.voice_errors.is_disabled():
+            return False
+        if not is_module_enabled('music'):
+            return False
+        return True
         
     def get_queue(self, guild_id):
         """Obtener cola de música para un servidor"""
@@ -552,7 +607,7 @@ class Music(commands.Cog):
                 queue = self.get_queue(interaction.guild.id)
                 queue.add(data)
                 
-                if not interaction.guild.voice_client.is_playing():
+                if not (interaction.guild.voice_client and interaction.guild.voice_client.is_playing()):
                     await self.play_next_song(interaction.guild)
                     status = "🎵 Reproduciendo ahora"
                 else:
@@ -583,10 +638,56 @@ class Music(commands.Cog):
         interaction: nextcord.Interaction,
         search: str = nextcord.SlashOption(description="URL de YouTube o términos de búsqueda")
     ):
-        """Comando slash para reproducir música con selección de resultados"""
+        """Comando slash para reproducir música con verificación de disponibilidad"""
         await interaction.response.defer()
         
-        # Verificar permisos
+        # Verificar si la funcionalidad de voz está disponible
+        if not self._is_voice_available():
+            embed = nextcord.Embed(
+                title="🚫 Funcionalidad de Voz No Disponible",
+                description="La reproducción de música está temporalmente deshabilitada.",
+                color=0xff0000
+            )
+            
+            if self.voice_errors.is_disabled():
+                embed.add_field(
+                    name="⚠️ Motivo",
+                    value=f"Se detectaron **{self.voice_errors.error_count}** errores consecutivos de conexión de voz.",
+                    inline=False
+                )
+                
+            if self.server_environment:
+                embed.add_field(
+                    name="🌐 Entorno Detectado",
+                    value=f"**{self.server_environment}** - Este proveedor tiene limitaciones conocidas para Discord Voice.",
+                    inline=False
+                )
+                
+            embed.add_field(
+                name="🔧 Soluciones",
+                value=(
+                    "• Usa `/voice-info` para más información\n"
+                    "• Usa `/voice-enable` para intentar reactivar\n"
+                    "• Contacta al administrador del bot\n"
+                    "• Considera usar el bot en un servidor local"
+                ),
+                inline=False
+            )
+            
+            embed.add_field(
+                name="🎵 Alternativas",
+                value=(
+                    "• Spotify, Apple Music u otros servicios\n"
+                    "• Bots de música especializados\n"
+                    "• Servidores de música dedicados"
+                ),
+                inline=False
+            )
+            
+            await interaction.followup.send(embed=embed)
+            return
+        
+        # Verificar permisos normales
         if not is_module_enabled('music'):
             await interaction.followup.send("❌ El módulo de música está deshabilitado.", ephemeral=True)
             return
@@ -611,44 +712,66 @@ class Music(commands.Cog):
                             timeout=30.0
                         )
                         logger.info(f"Conectado exitosamente al canal: {voice_channel.name}")
+                        # Resetear errores en caso de éxito
+                        self.voice_errors.reset_errors()
                         break
                     except asyncio.TimeoutError:
                         logger.warning(f"Timeout en intento {attempt + 1} de conexión")
+                        self.voice_errors.add_error("timeout")
                         if attempt == 2:
                             await interaction.followup.send(
-                                "❌ **Error de conexión de voz**\n"
-                                "El bot no puede conectarse al canal de voz. Esto puede deberse a:\n"
-                                "• Limitaciones del servidor de hosting\n"
-                                "• Problemas de red temporales\n"
-                                "• Restricciones de Discord\n\n"
-                                "**Soluciones:**\n"
-                                "1. Intenta de nuevo en unos minutos\n"
-                                "2. Verifica los permisos del bot\n"
-                                "3. Contacta al administrador del servidor"
+                                "❌ **Error de conexión de voz - Timeouts persistentes**\n"
+                                f"Se detectaron **{self.voice_errors.error_count}** errores consecutivos.\n"
+                                "La funcionalidad de música ha sido **deshabilitada automáticamente**.\n\n"
+                                "**Motivo:** Timeouts de conexión persistentes\n"
+                                "**Solución:** Usa `/voice-enable` para reactivar o contacta al administrador."
                             )
                             return
                         await asyncio.sleep(2)  # Pausa entre intentos
                     except nextcord.errors.ConnectionClosed as e:
                         logger.error(f"Conexión cerrada en intento {attempt + 1}: {e}")
+                        self.voice_errors.add_error("websocket_4006")
                         if attempt == 2:
-                            await interaction.followup.send(
-                                "❌ **Error de conexión WebSocket (Código 4006)**\n"
-                                "Este error es común en servidores hospedados y significa que Discord rechazó la conexión de voz.\n\n"
-                                "**Esto puede deberse a:**\n"
-                                "• Limitaciones de la plataforma de hosting (Render, Heroku, etc.)\n"
-                                "• Restricciones de red del servidor\n"
-                                "• Configuración de firewall\n\n"
-                                "**Alternativas:**\n"
-                                "• Usar el bot en un servidor local\n"
-                                "• Contactar al proveedor de hosting\n"
-                                "• Considerar usar otros servicios de música"
+                            embed = nextcord.Embed(
+                                title="❌ Error WebSocket 4006 - Funcionalidad Deshabilitada",
+                                description=(
+                                    f"Discord rechazó la conexión de voz **{self.voice_errors.error_count} veces consecutivas**.\n"
+                                    "La funcionalidad de música ha sido **deshabilitada automáticamente**."
+                                ),
+                                color=0xff0000
                             )
+                            embed.add_field(
+                                name="🚨 Problema Identificado",
+                                value=(
+                                    "**Error 4006**: Incompatibilidad con la plataforma de hosting\n"
+                                    f"**Entorno**: {self.server_environment or 'Desconocido'}\n"
+                                    "**Causa**: Restricciones de red del proveedor"
+                                ),
+                                inline=False
+                            )
+                            embed.add_field(
+                                name="🔧 Acciones Disponibles",
+                                value=(
+                                    "• `/voice-enable` - Intentar reactivar\n"
+                                    "• `/voice-info` - Ver información detallada\n"
+                                    "• Contactar administrador del servidor\n"
+                                    "• Considerar migrar a VPS dedicado"
+                                ),
+                                inline=False
+                            )
+                            await interaction.followup.send(embed=embed)
                             return
                         await asyncio.sleep(3)
                     except Exception as e:
                         logger.error(f"Error inesperado en conexión {attempt + 1}: {e}")
+                        self.voice_errors.add_error("unknown")
                         if attempt == 2:
-                            await interaction.followup.send(f"❌ Error de conexión: {str(e)}")
+                            await interaction.followup.send(
+                                f"❌ **Error de conexión persistente**\n"
+                                f"Se detectaron **{self.voice_errors.error_count}** errores consecutivos.\n"
+                                f"Último error: {str(e)}\n\n"
+                                "La funcionalidad de música ha sido **deshabilitada automáticamente**."
+                            )
                             return
                         await asyncio.sleep(2)
             else:
@@ -717,7 +840,7 @@ class Music(commands.Cog):
             await interaction.followup.send("❌ No estoy reproduciendo música.")
             return
         
-        if interaction.guild.voice_client.is_playing():
+        if interaction.guild.voice_client and interaction.guild.voice_client.is_playing():
             interaction.guild.voice_client.stop()
             await interaction.followup.send("⏭️ Canción saltada.")
         else:
@@ -778,10 +901,12 @@ class Music(commands.Cog):
         queue = self.get_queue(interaction.guild.id)
         queue.clear()
         
-        if interaction.guild.voice_client.is_playing():
+        if interaction.guild.voice_client and interaction.guild.voice_client.is_playing():
             interaction.guild.voice_client.stop()
         
-        await interaction.guild.voice_client.disconnect()
+        if interaction.guild.voice_client:
+            await interaction.guild.voice_client.disconnect()
+            
         await interaction.followup.send("⏹️ Música detenida y cola limpiada.")
 
     @nextcord.slash_command(name="volume", description="Cambiar el volumen de la música")
@@ -877,7 +1002,112 @@ class Music(commands.Cog):
             inline=False
         )
         
-        embed.set_footer(text="Use /play para probar la funcionalidad de música")
+        # Información del estado actual
+        status_value = "🟢 Activa" if self._is_voice_available() else "🔴 Deshabilitada"
+        if self.voice_errors.error_count > 0:
+            status_value += f" (Errores: {self.voice_errors.error_count})"
+            
+        embed.add_field(
+            name="📊 Estado Actual",
+            value=status_value,
+            inline=True
+        )
+        
+        embed.set_footer(text="Use /play para probar • /voice-enable para reactivar")
+        await interaction.followup.send(embed=embed)
+
+    @nextcord.slash_command(name="voice-enable", description="Reactivar funcionalidad de voz (admin)")
+    async def slash_voice_enable(self, interaction: nextcord.Interaction):
+        """Comando para reactivar la funcionalidad de voz"""
+        await interaction.response.defer()
+        
+        # Verificar permisos de administrador
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.followup.send("❌ Solo los administradores pueden usar este comando.", ephemeral=True)
+            return
+        
+        # Forzar habilitación
+        self.voice_errors.force_enable()
+        
+        embed = nextcord.Embed(
+            title="✅ Funcionalidad de Voz Reactivada",
+            description="La reproducción de música ha sido habilitada nuevamente.",
+            color=0x00ff00
+        )
+        
+        embed.add_field(
+            name="🔄 Estado",
+            value="Contador de errores reseteado\nFuncionalidad forzada a activa",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Advertencia",
+            value=(
+                "Si los problemas de conexión persisten, la funcionalidad "
+                "puede deshabilitarse automáticamente nuevamente."
+            ),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🎵 Próximo Paso",
+            value="Usa `/play [canción]` para probar la funcionalidad.",
+            inline=False
+        )
+        
+        await interaction.followup.send(embed=embed)
+
+    @nextcord.slash_command(name="voice-status", description="Ver estado detallado del sistema de voz")
+    async def slash_voice_status(self, interaction: nextcord.Interaction):
+        """Mostrar estado detallado del sistema de voz"""
+        await interaction.response.defer()
+        
+        embed = nextcord.Embed(
+            title="📊 Estado del Sistema de Voz",
+            color=0x00ff00 if self._is_voice_available() else 0xff0000
+        )
+        
+        # Estado principal
+        status = "🟢 Activa" if self._is_voice_available() else "🔴 Deshabilitada"
+        embed.add_field(name="Estado", value=status, inline=True)
+        
+        # Entorno
+        env_status = self.server_environment or "Local"
+        embed.add_field(name="Entorno", value=env_status, inline=True)
+        
+        # Errores
+        embed.add_field(name="Errores", value=f"{self.voice_errors.error_count}/3", inline=True)
+        
+        # Último error
+        if self.voice_errors.last_error_time:
+            last_error = self.voice_errors.last_error_time.strftime("%H:%M:%S")
+            embed.add_field(name="Último Error", value=last_error, inline=True)
+        else:
+            embed.add_field(name="Último Error", value="Ninguno", inline=True)
+        
+        # Módulo habilitado
+        module_status = "✅ Sí" if is_module_enabled('music') else "❌ No"
+        embed.add_field(name="Módulo Música", value=module_status, inline=True)
+        
+        # Información técnica
+        embed.add_field(
+            name="🔧 Información Técnica",
+            value=(
+                f"**FFmpeg**: {ffmpeg_executable}\n"
+                f"**Nextcord**: {nextcord.__version__}\n"
+                f"**Threshold**: {self.voice_errors.error_threshold} errores"
+            ),
+            inline=False
+        )
+        
+        if not self._is_voice_available():
+            embed.add_field(
+                name="🔄 Reactivación",
+                value="Usa `/voice-enable` (solo admins) para intentar reactivar.",
+                inline=False
+            )
+        
         await interaction.followup.send(embed=embed)
 
 def setup(bot):

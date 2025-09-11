@@ -6,10 +6,15 @@ services:
     region: oregon  # Región más cercana a servidores Discord
     plan: starter   # Plan mínimo recomendado para voz
     buildCommand: |
+      chmod +x render-music-check.sh && 
+      ./render-music-check.sh &&
       apt-get update && 
       apt-get install -y ffmpeg libopus-dev libopus0 && 
       pip install -r requirements-render-voice.txt
-    startCommand: python bot.py
+    startCommand: |
+      chmod +x render-music-check.sh &&
+      ./render-music-check.sh &&
+      python bot.py
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
@@ -17,6 +22,8 @@ services:
         value: /usr/bin/ffmpeg
       - key: RENDER_VOICE
         value: "true"
+      - key: MUSIC_DISABLED
+        value: "true"  # Deshabilitar por defecto en Render
       - key: DISCORD_TOKEN
         sync: false  # Configurar manualmente en dashboard
     healthCheckPath: /health  # Endpoint de salud opcional

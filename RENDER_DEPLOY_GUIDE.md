@@ -1,113 +1,98 @@
 # 🚀 Guía Rápida de Deploy en Render
 
-## ⚡ Opción Recomendada: Web Service (Sin Docker)
+## ⚡ Opción 1: Manual Setup (MÁS RECOMENDADO)
 
-### 1. **Crear Nuevo Web Service**
-1. Ve a [Render Dashboard](https://dashboard.render.com)
-2. Haz clic en **"New +"** → **"Web Service"**
-3. Conecta tu repositorio: `https://github.com/davito-03/dabot-v2.git`
+### **🎯 La forma más confiable de evitar errores:**
 
-### 2. **Configuración del Servicio**
-```
-Name: dabot-v2
-Runtime: Python 3
-Build Command: pip install --upgrade pip && pip install -r requirements-render.txt  
-Start Command: python bot.py
-```
+1. **Crear Nuevo Web Service**
+   - Ve a [Render Dashboard](https://dashboard.render.com)
+   - **New +** → **Web Service**
+   - Conecta: `https://github.com/davito-03/dabot-v2.git`
 
-### 3. **Variables de Entorno Esenciales**
-```
-DISCORD_TOKEN=tu_token_aqui
-WEB_PORT=10000
-WEB_HOST=0.0.0.0
-ENVIRONMENT=production
-LOG_LEVEL=INFO
-```
+2. **Configuración Simple**
+   ```
+   Name: dabot-v2
+   Runtime: Python 3
+   Build Command: pip install --upgrade pip && pip install nextcord==2.6.0 python-dotenv==1.0.1 aiohttp==3.9.5 requests==2.31.0 PyNaCl==1.5.0
+   Start Command: python bot.py
+   ```
 
-### 4. **Health Check**
-```
-Health Check Path: /health
+3. **Variables de Entorno**
+   ```
+   DISCORD_TOKEN=tu_token_aqui
+   WEB_PORT=10000
+   WEB_HOST=0.0.0.0
+   ENVIRONMENT=production
+   ```
+
+4. **Health Check**
+   ```
+   Health Check Path: /health
+   ```
+
+---
+
+## � Opción 2: Con requirements-minimal.txt
+
+### **Si prefieres usar archivo de requirements:**
+
+**Build Command:**
+```bash
+pip install --upgrade pip && pip install -r requirements-minimal.txt
 ```
 
 ---
 
-## 🐳 Opción Alternativa: Docker
+## 🐳 Opción 3: Docker (Solo si las otras fallan)
 
-Si quieres usar Docker, asegúrate de que la configuración sea:
-
-### **Configuración Docker en Render:**
+### **Configuración Docker:**
 ```
 Dockerfile Path: ./Dockerfile
 Docker Context: ./
+Port: 8080
 ```
 
-### **Puerto Exposado:**
-```
-Port: 8080 (desde el Dockerfile)
-```
+El Dockerfile tiene fallback automático a requirements mínimos.
 
 ---
 
-## 🔧 **Troubleshooting**
+## ❌ **Si sigues teniendo errores:**
 
-### **Error: nextcord 3.1.1 requires Python 3.12+**
-✅ **Solucionado** - Ahora usamos:
-- `runtime.txt`: python-3.12.5
-- `requirements-render.txt`: nextcord==2.6.0
+### **Deploy Ultra-Simple:**
+1. **Build Command:**
+   ```bash
+   pip install nextcord python-dotenv aiohttp requests
+   ```
 
-### **Error: python3.12-pip package not found**
-✅ **Solucionado** - Dockerfile actualizado para usar imagen oficial de Python
+2. **Start Command:**
+   ```bash
+   python bot.py
+   ```
+
+3. **Variables mínimas:**
+   ```
+   DISCORD_TOKEN=tu_token
+   ```
+
+---
+
+## � **Troubleshooting por Error:**
+
+### **Error: requirements-render.txt failed**
+✅ **Usa requirements-minimal.txt o build command manual**
+
+### **Error: Docker build failed**  
+✅ **Usa Web Service sin Docker (Opción 1)**
 
 ### **Error: Health check failing**
-✅ **Solucionado** - Bot incluye servidor web con endpoint `/health`
+✅ **El bot incluye servidor web automático en puerto 10000**
 
 ---
 
-## 📊 **Verificar Deploy**
+## 🎯 **Método Recomendado Final:**
 
-### **Logs Esperados:**
-```
-🚀 Iniciando DABOT V2...
-🌐 Servidor web iniciado en 0.0.0.0:10000
-✅ Bot conectado como: DaBot#1234
-🔄 Comandos sincronizados
-```
-
-### **Health Check:**
-Visita: `https://tu-app.onrender.com/health`
-Debería retornar:
-```json
-{
-  "status": "healthy",
-  "service": "DaBot v2", 
-  "timestamp": "2025-09-11T...",
-  "version": "2.0.0"
-}
-```
-
----
-
-## 🎯 **Configuración Recomendada Final**
-
-### **Método Simple (Recomendado):**
-- ✅ Web Service sin Docker
-- ✅ Python 3.12.5 
-- ✅ requirements-render.txt
-- ✅ Health check en /health
-
-### **Si prefieres Docker:**
-- ✅ Dockerfile simplificado con python:3.12-slim
-- ✅ Build context: ./ 
-- ✅ Puerto 8080
-
----
-
-## 🔄 **Re-Deploy Después de Errores**
-
-1. **Auto-deploy está activado** - Los cambios se despliegan automáticamente
-2. **Manual deploy**: Dashboard → Tu servicio → "Manual Deploy"
-3. **Logs en tiempo real**: Dashboard → Tu servicio → "Logs"
-
----
-
-¡Los cambios están subidos a GitHub y listos para deploy! 🎉
+**La Opción 1 (Manual Setup) es la más confiable porque:**
+- ✅ No depende de archivos requirements complejos
+- ✅ Instala solo las dependencias esenciales
+- ✅ Menos puntos de fallo
+- ✅ Build más rápido

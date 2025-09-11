@@ -1,0 +1,8 @@
+# Requirements mínimos para DaBot v2 en Render
+# Solo las dependencias esenciales
+
+nextcord==2.6.0
+python-dotenv==1.0.1
+aiohttp==3.9.5
+requests==2.31.0
+PyNaCl==1.5.0

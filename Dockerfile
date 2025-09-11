@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
-# Instalar dependencias del sistema
+# Actualizar sistema e instalar dependencias básicas
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     git \
@@ -15,28 +15,30 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libssl-dev \
     pkg-config \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Actualizar pip
-RUN pip install --upgrade pip
+# Actualizar pip y setuptools
+RUN pip install --upgrade pip setuptools wheel
 
-# Copiar archivos de requirements
+# Copiar requirements minimal primero para cache
+COPY requirements-minimal.txt .
+RUN pip install --no-cache-dir -r requirements-minimal.txt
+
+# Intentar instalar requirements completos, fallback a minimal
 COPY requirements-render.txt .
-
-# Instalar dependencias de Python
-RUN pip install --no-cache-dir -r requirements-render.txt
+RUN pip install --no-cache-dir -r requirements-render.txt || \
+    (echo "Falling back to minimal requirements" && \
+     pip install --no-cache-dir -r requirements-minimal.txt)
 
 # Copiar código fuente
 COPY . .
 
 # Crear directorios necesarios
 RUN mkdir -p logs data
-
-# Configurar permisos
-RUN chmod +x /app
 
 # Exponer puerto para web API
 EXPOSE 8080

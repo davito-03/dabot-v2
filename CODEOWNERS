@@ -1,0 +1,16 @@
+# Este archivo define quién puede aprobar cambios en el repositorio
+# Solo Davito puede hacer commits y aprobar pull requests
+
+# Todos los archivos requieren aprobación de Davito
+* @davito-03
+
+# Archivos críticos requieren aprobación especial
+*.py @davito-03
+*.env @davito-03
+requirements*.txt @davito-03
+README.md @davito-03
+.gitignore @davito-03
+
+# Configuración del bot
+bot.py @davito-03
+modules/ @davito-03

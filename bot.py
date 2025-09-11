@@ -47,6 +47,10 @@ from modules.bot_config import BotConfig
 from modules.config_manager import config, get_config, is_module_enabled
 from modules.autoroles_verification import AutorolesVerification
 
+# Importar aiohttp para el servidor web
+from aiohttp import web
+import json
+
 # Cargar variables de entorno
 load_dotenv()
 
@@ -183,9 +187,43 @@ class DiscordBot(commands.Bot):
         """Espera a que el bot esté listo antes de iniciar la tarea diaria"""
         await self.wait_until_ready()
 
+# Servidor web para health checks en Render
+async def health_check(request):
+    """Endpoint de health check para Render"""
+    return web.json_response({
+        "status": "healthy",
+        "service": "DaBot v2",
+        "timestamp": datetime.now().isoformat(),
+        "version": "2.0.0"
+    })
+
+async def start_web_server():
+    """Inicia el servidor web para health checks"""
+    try:
+        app = web.Application()
+        app.router.add_get('/health', health_check)
+        app.router.add_get('/', health_check)  # También responder en root
+        
+        port = int(os.getenv('WEB_PORT', 10000))
+        host = os.getenv('WEB_HOST', '0.0.0.0')
+        
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, host, port)
+        await site.start()
+        
+        logger.info(f"🌐 Servidor web iniciado en {host}:{port}")
+        return runner
+    except Exception as e:
+        logger.error(f"❌ Error al iniciar servidor web: {e}")
+        return None
+
 async def main():
     """Función principal para ejecutar el bot"""
     print("🚀 Iniciando DABOT V2...")
+    
+    # Iniciar servidor web para health checks
+    web_runner = await start_web_server()
     
     # Verificar que el token esté configurado
     token = os.getenv('DISCORD_TOKEN')
@@ -345,7 +383,11 @@ async def main():
     except Exception as e:
         logger.error(f"❌ Error al iniciar el bot: {e}")
     finally:
+        # Limpiar recursos
         await bot.close()
+        if web_runner:
+            await web_runner.cleanup()
+            logger.info("🌐 Servidor web detenido")
 
 if __name__ == '__main__':
     # Ejecutar el bot

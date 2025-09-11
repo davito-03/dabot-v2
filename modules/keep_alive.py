@@ -11,7 +11,14 @@ from datetime import datetime, timedelta
 from aiohttp import web, ClientSession
 import json
 import os
-import psutil
+
+# Importación opcional de psutil
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    print("⚠️  psutil no disponible - usando modo básico")
 
 logger = logging.getLogger(__name__)
 
@@ -169,9 +176,12 @@ class KeepAliveSystem:
                 # Limpiar logs antiguos, caché, etc.
                 logger.info("🧹 Ejecutando limpieza de sistema...")
                 
-                # Información de memoria
-                memory = psutil.virtual_memory()
-                logger.info(f"💾 Memoria: {memory.percent}% usada")
+                # Información de memoria (si psutil disponible)
+                if PSUTIL_AVAILABLE:
+                    memory = psutil.virtual_memory()
+                    logger.info(f"💾 Memoria: {memory.percent}% usada")
+                else:
+                    logger.info("💾 Memoria: Monitoreo no disponible")
                 
             except Exception as e:
                 logger.error(f"Error en limpieza: {e}")
@@ -240,7 +250,7 @@ class KeepAliveSystem:
             "ping_count": self.ping_count,
             "health_checks": self.health_checks,
             "timestamp": datetime.now().isoformat(),
-            "memory_usage": psutil.virtual_memory().percent
+            "memory_usage": psutil.virtual_memory().percent if PSUTIL_AVAILABLE else "N/A"
         }
         
         if self.bot.is_ready():
@@ -271,7 +281,7 @@ class KeepAliveSystem:
                 "ping_count": self.ping_count,
                 "health_checks": self.health_checks,
                 "last_ping": self.last_ping.isoformat() if self.last_ping else None,
-                "memory_percent": psutil.virtual_memory().percent,
+                "memory_percent": psutil.virtual_memory().percent if PSUTIL_AVAILABLE else "N/A",
                 "is_render": bool(os.getenv('RENDER'))
             },
             "timestamp": datetime.now().isoformat()

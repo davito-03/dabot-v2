@@ -1,12 +1,15 @@
-# Usar imagen oficial de Python 3.12
+# Imagen optimizada para Render Free Plan
 FROM python:3.12-slim
 
-# Configurar variables de entorno
+# Variables de entorno optimizadas
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Actualizar sistema e instalar dependencias básicas
+# Instalar dependencias del sistema (mínimas para Render)
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     git \
@@ -16,7 +19,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get autoremove -y
 
 # Establecer directorio de trabajo
 WORKDIR /app

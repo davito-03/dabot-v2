@@ -12,6 +12,7 @@ python-dateutil==2.8.2
 # HTTP & API
 requests>=2.31.0
 aiohttp>=3.9.0
+psutil>=5.9.0
 
 # Security & Encryption
 PyJWT==2.8.0

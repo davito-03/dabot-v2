@@ -5,27 +5,31 @@
 # Archivo: render.yaml
 
 services:
-  - type: web
+  - type: web  # ⚠️ IMPORTANTE: 'web' service para keep-alive automático
     name: dabot-v2
     env: python
-    plan: starter
+    plan: starter  # Recomendado para uptime 24/7
     runtime: python-3.12.5
     buildCommand: |
       pip install --upgrade pip &&
       pip install -r requirements-render.txt
     startCommand: python bot.py
-    healthCheckPath: /health
+    healthCheckPath: /health  # Keep-alive automático de Render
     envVars:
       - key: DISCORD_TOKEN
         sync: false
       - key: PREFIX
         value: "!"
+      - key: PORT
+        value: "8080"  # Puerto para keep-alive
       - key: WEB_PORT
-        value: "10000" 
+        value: "8080"
       - key: WEB_HOST
         value: "0.0.0.0"
       - key: WEB_ENABLED
         value: "true"
+      - key: KEEP_ALIVE_ENABLED
+        value: "true"  # Activar sistema keep-alive
       - key: PYTHON_VERSION
         value: "3.12.5"
       - key: LOG_LEVEL

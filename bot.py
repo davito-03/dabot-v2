@@ -46,6 +46,7 @@ from modules.nsfw import NSFWCommands
 from modules.bot_config import BotConfig
 from modules.config_manager import config, get_config, is_module_enabled
 from modules.autoroles_verification import AutorolesVerification
+from modules.keep_alive import setup_keep_alive, shutdown_keep_alive
 
 # Importar aiohttp para el servidor web
 from aiohttp import web
@@ -137,6 +138,21 @@ class DiscordBot(commands.Bot):
             logger.info("Tarea diaria iniciada")
         else:
             logger.info("Canal diario no configurado, omitiendo tarea diaria")
+        
+        # Iniciar sistema Keep-Alive para mantener el bot activo 24/7
+        try:
+            logger.info("🚀 Iniciando sistema Keep-Alive...")
+            keep_alive = await setup_keep_alive(self)
+            if keep_alive:
+                logger.info("✅ Sistema Keep-Alive iniciado exitosamente")
+                # Solo en Render o hosting remoto
+                if os.getenv('RENDER') or os.getenv('PORT'):
+                    logger.info("🌐 Detectado entorno de hosting - Keep-Alive activo")
+            else:
+                logger.warning("⚠️ No se pudo iniciar Keep-Alive")
+        except Exception as e:
+            logger.error(f"❌ Error iniciando Keep-Alive: {e}")
+            logger.info("El bot continuará funcionando sin Keep-Alive")
     
     async def on_disconnect(self):
         """Evento cuando el bot se desconecta"""
@@ -384,7 +400,19 @@ async def main():
         logger.error(f"❌ Error al iniciar el bot: {e}")
     finally:
         # Limpiar recursos
+        logger.info("🛑 Cerrando bot y limpiando recursos...")
+        
+        # Cerrar sistema Keep-Alive
+        try:
+            await shutdown_keep_alive()
+            logger.info("✅ Sistema Keep-Alive cerrado")
+        except Exception as e:
+            logger.error(f"Error cerrando Keep-Alive: {e}")
+        
+        # Cerrar bot
         await bot.close()
+        
+        # Cerrar servidor web si existe
         if web_runner:
             await web_runner.cleanup()
             logger.info("🌐 Servidor web detenido")

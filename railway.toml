@@ -1,0 +1,14 @@
+# Configuración para Railway.app
+# Este archivo permite que la música funcione correctamente
+
+[build]
+  builder = "nixpacks"
+
+[deploy]
+  healthcheckPath = "/health"
+  restartPolicyType = "on_failure"
+
+[env]
+  PORT = "8080"
+  MUSIC_DISABLED = "false"
+  RAILWAY_ENVIRONMENT = "production"

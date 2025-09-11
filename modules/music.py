@@ -19,14 +19,14 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
-# Configuración para yt-dlp
+# Configuración para yt-dlp (optimizada para servidores)
 ytdl_format_options = {
-    'format': 'worst[abr>0]/worst/best',  # Formato más flexible
+    'format': 'bestaudio[acodec!=opus]/bestaudio/best',  # Mejor calidad de audio disponible
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
-    'ignoreerrors': True,  # Cambiar a True para continuar con errores
+    'ignoreerrors': True,
     'logtostderr': False,
     'quiet': True,
     'no_warnings': True,
@@ -34,14 +34,19 @@ ytdl_format_options = {
     'source_address': '0.0.0.0',
     'prefer_ffmpeg': True,
     'keepvideo': False,
+    # Configuración optimizada para servidores remotos
+    'socket_timeout': 30,
+    'http_chunk_size': 1024,
+    'retries': 3,
+    'fragment_retries': 3,
     'extractor_args': {
         'youtube': {
             'skip': ['hls', 'dash'],
-            'player_skip': ['js']  # Simplificar player_skip
+            'player_skip': ['js']
         }
     },
     'http_headers': {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-us,en;q=0.5',
         'Accept-Encoding': 'gzip,deflate',
@@ -50,31 +55,40 @@ ytdl_format_options = {
     }
 }
 
-# Configurar FFmpeg
+# Configurar FFmpeg optimizado para servidores remotos
 def get_ffmpeg_executable():
     """Obtener la ruta del ejecutable de FFmpeg"""
-    # Intentar rutas comunes
+    # Intentar rutas comunes (incluyendo contenedores Linux)
     ffmpeg_paths = [
         'ffmpeg',  # En PATH
-        'C:/ffmpeg/bin/ffmpeg.exe',  # Instalación personalizada
-        'C:/Program Files/ffmpeg/bin/ffmpeg.exe',  # Instalación estándar
+        '/usr/bin/ffmpeg',  # Linux estándar
+        '/usr/local/bin/ffmpeg',  # Linux local
+        '/opt/render/project/.render/ffmpeg/ffmpeg',  # Render específico
+        'C:/ffmpeg/bin/ffmpeg.exe',  # Windows personalizada
+        'C:/Program Files/ffmpeg/bin/ffmpeg.exe',  # Windows estándar
     ]
     
     for path in ffmpeg_paths:
         try:
-            subprocess.run([path, '-version'], capture_output=True, check=True)
+            subprocess.run([path, '-version'], 
+                          capture_output=True, 
+                          check=True,
+                          timeout=5)
+            logger.info(f"FFmpeg encontrado en: {path}")
             return path
-        except (subprocess.CalledProcessError, FileNotFoundError):
+        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
             continue
     
-    return 'ffmpeg'  # Valor por defecto
+    logger.warning("FFmpeg no encontrado en rutas estándar, usando 'ffmpeg' por defecto")
+    return 'ffmpeg'
 
-# Configurar FFmpeg
+# Configurar FFmpeg con opciones optimizadas para streaming
 ffmpeg_executable = get_ffmpeg_executable()
 
+# FFmpeg options optimizadas para servidores con conexiones inestables
 ffmpeg_options = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn',
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -http_persistent 0 -fflags +discardcorrupt',
+    'options': '-vn -loglevel quiet -bufsize 64k -maxrate 128k',
     'executable': ffmpeg_executable
 }
 
@@ -93,44 +107,78 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
         self.thumbnail = data.get('thumbnail')
     
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
-        """Crear fuente de audio desde URL"""
+    async def from_url(cls, url, *, loop=None, stream=True):
+        """Crear fuente de audio desde URL - optimizada para servidores remotos"""
         loop = loop or asyncio.get_event_loop()
         
-        # Configuración más tolerante para reproducción
+        # Configuración específica para reproducción en servidores
         playback_opts = {
-            'format': 'worst[abr>0]/worst/best',
+            'format': 'bestaudio[acodec!=opus]/bestaudio/best',
             'quiet': True,
             'no_warnings': True,
             'ignoreerrors': True,
-            'prefer_ffmpeg': True
+            'prefer_ffmpeg': True,
+            'socket_timeout': 30,
+            'http_chunk_size': 1024,
+            'retries': 2,
+            'fragment_retries': 2,
+            # Forzar streaming para reducir uso de disco
+            'noplaylist': True,
+            'no_color': True
         }
         
         try:
-            data = await loop.run_in_executor(
+            logger.info(f"Extrayendo información de: {url}")
+            
+            # Extraer información con timeout
+            extract_task = loop.run_in_executor(
                 None, 
-                lambda: yt_dlp.YoutubeDL(playback_opts).extract_info(url, download=not stream)
+                lambda: yt_dlp.YoutubeDL(playback_opts).extract_info(url, download=False)
             )
+            
+            try:
+                data = await asyncio.wait_for(extract_task, timeout=30.0)
+            except asyncio.TimeoutError:
+                raise Exception("Timeout al extraer información del video")
             
             if 'entries' in data:
                 # Tomar el primer resultado si es una playlist
                 data = data['entries'][0]
             
-            # Asegurar que tenemos una URL válida
-            if not data.get('url'):
-                raise Exception("No se pudo obtener URL de reproducción")
+            # Validar datos necesarios
+            if not data:
+                raise Exception("No se pudieron extraer datos del video")
+                
+            # Asegurar que tenemos una URL válida para streaming
+            audio_url = data.get('url')
+            if not audio_url:
+                raise Exception("No se pudo obtener URL de audio")
             
-            filename = data['url'] if stream else ytdl.prepare_filename(data)
-            return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+            logger.info(f"URL de audio obtenida: {audio_url[:100]}...")
+            
+            # Crear el reproductor con opciones optimizadas
+            try:
+                source = nextcord.FFmpegPCMAudio(
+                    audio_url,
+                    **ffmpeg_options,
+                    stderr=subprocess.DEVNULL  # Silenciar stderr de FFmpeg
+                )
+                return cls(source, data=data)
+                
+            except Exception as ffmpeg_error:
+                logger.error(f"Error creando FFmpegPCMAudio: {ffmpeg_error}")
+                # Intentar con opciones más básicas
+                basic_options = {
+                    'before_options': '-reconnect 1',
+                    'options': '-vn -loglevel panic',
+                    'executable': ffmpeg_executable
+                }
+                source = nextcord.FFmpegPCMAudio(audio_url, **basic_options)
+                return cls(source, data=data)
             
         except Exception as e:
             logger.error(f"Error creando fuente de audio: {e}")
-            # Intentar con URL directa como último recurso
-            try:
-                return cls(nextcord.FFmpegPCMAudio(url, **ffmpeg_options), data={'title': 'Audio Stream', 'url': url})
-            except Exception as fallback_error:
-                logger.error(f"Error con URL directa: {fallback_error}")
-                raise Exception("No se pudo crear fuente de audio")
+            raise Exception(f"No se pudo procesar el audio: {str(e)}")
 
 class MusicQueue:
     """Sistema de cola para música"""
@@ -290,6 +338,36 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.queues = {}  # Diccionario de colas por servidor
+        self.server_environment = self._detect_server_environment()
+        
+        # Advertencia para entornos de servidor
+        if self.server_environment:
+            logger.warning(
+                f"🚨 Bot detectado en entorno de servidor ({self.server_environment}). "
+                "Las funciones de voz pueden tener limitaciones."
+            )
+    
+    def _detect_server_environment(self):
+        """Detectar si estamos en un entorno de servidor hospedado"""
+        import os
+        
+        # Detectar varios entornos de hosting
+        if os.getenv('RENDER'):
+            return 'Render'
+        elif os.getenv('HEROKU'):
+            return 'Heroku'
+        elif os.getenv('RAILWAY_ENVIRONMENT'):
+            return 'Railway'
+        elif os.getenv('VERCEL'):
+            return 'Vercel'
+        elif os.getenv('FLYCTL_ORG'):
+            return 'Fly.io'
+        elif os.path.exists('/.dockerenv'):
+            return 'Docker'
+        elif os.getenv('container') == 'oci':
+            return 'Container'
+        
+        return None
         
     def get_queue(self, guild_id):
         """Obtener cola de música para un servidor"""
@@ -519,14 +597,76 @@ class Music(commands.Cog):
             return
         
         try:
-            # Conectar al canal de voz si no está conectado
+            # Conectar al canal de voz con manejo de errores mejorado
             voice_channel = interaction.user.voice.channel
+            voice_client = None
+            
             if not interaction.guild.voice_client:
-                voice_client = await voice_channel.connect()
+                # Intentar conectar con reintentos
+                for attempt in range(3):
+                    try:
+                        logger.info(f"Intento {attempt + 1} de conexión a canal de voz")
+                        voice_client = await asyncio.wait_for(
+                            voice_channel.connect(timeout=30.0, reconnect=True),
+                            timeout=30.0
+                        )
+                        logger.info(f"Conectado exitosamente al canal: {voice_channel.name}")
+                        break
+                    except asyncio.TimeoutError:
+                        logger.warning(f"Timeout en intento {attempt + 1} de conexión")
+                        if attempt == 2:
+                            await interaction.followup.send(
+                                "❌ **Error de conexión de voz**\n"
+                                "El bot no puede conectarse al canal de voz. Esto puede deberse a:\n"
+                                "• Limitaciones del servidor de hosting\n"
+                                "• Problemas de red temporales\n"
+                                "• Restricciones de Discord\n\n"
+                                "**Soluciones:**\n"
+                                "1. Intenta de nuevo en unos minutos\n"
+                                "2. Verifica los permisos del bot\n"
+                                "3. Contacta al administrador del servidor"
+                            )
+                            return
+                        await asyncio.sleep(2)  # Pausa entre intentos
+                    except nextcord.errors.ConnectionClosed as e:
+                        logger.error(f"Conexión cerrada en intento {attempt + 1}: {e}")
+                        if attempt == 2:
+                            await interaction.followup.send(
+                                "❌ **Error de conexión WebSocket (Código 4006)**\n"
+                                "Este error es común en servidores hospedados y significa que Discord rechazó la conexión de voz.\n\n"
+                                "**Esto puede deberse a:**\n"
+                                "• Limitaciones de la plataforma de hosting (Render, Heroku, etc.)\n"
+                                "• Restricciones de red del servidor\n"
+                                "• Configuración de firewall\n\n"
+                                "**Alternativas:**\n"
+                                "• Usar el bot en un servidor local\n"
+                                "• Contactar al proveedor de hosting\n"
+                                "• Considerar usar otros servicios de música"
+                            )
+                            return
+                        await asyncio.sleep(3)
+                    except Exception as e:
+                        logger.error(f"Error inesperado en conexión {attempt + 1}: {e}")
+                        if attempt == 2:
+                            await interaction.followup.send(f"❌ Error de conexión: {str(e)}")
+                            return
+                        await asyncio.sleep(2)
             else:
                 voice_client = interaction.guild.voice_client
                 if voice_client.channel != voice_channel:
-                    await voice_client.move_to(voice_channel)
+                    try:
+                        await voice_client.move_to(voice_channel)
+                        logger.info(f"Movido a canal: {voice_channel.name}")
+                    except Exception as e:
+                        logger.error(f"Error moviendo a canal: {e}")
+                        # Intentar desconectar y reconectar
+                        try:
+                            await voice_client.disconnect(force=True)
+                            voice_client = await voice_channel.connect(timeout=20.0)
+                        except Exception as reconnect_error:
+                            logger.error(f"Error en reconexión: {reconnect_error}")
+                            await interaction.followup.send("❌ No se pudo cambiar de canal de voz.")
+                            return
             
             # Si es una URL directa, reproducir inmediatamente
             if "youtube.com" in search or "youtu.be" in search:
@@ -669,6 +809,76 @@ class Music(commands.Cog):
             interaction.guild.voice_client.source.volume = volume
         
         await interaction.followup.send(f"🔊 Volumen cambiado a {volumen}%")
+
+    @nextcord.slash_command(name="voice-info", description="Información sobre limitaciones de voz del bot")
+    async def slash_voice_info(self, interaction: nextcord.Interaction):
+        """Mostrar información sobre el sistema de voz y posibles limitaciones"""
+        await interaction.response.defer()
+        
+        embed = nextcord.Embed(
+            title="🎙️ Información del Sistema de Voz",
+            color=0x00ff00 if not self.server_environment else 0xff9900
+        )
+        
+        if self.server_environment:
+            embed.add_field(
+                name="⚠️ Entorno Detectado",
+                value=f"**{self.server_environment}** - Pueden existir limitaciones de voz",
+                inline=False
+            )
+            
+            embed.add_field(
+                name="🚨 Limitaciones Conocidas",
+                value=(
+                    "• **Error 4006**: Discord rechaza conexiones de voz desde algunos proveedores\n"
+                    "• **Timeout**: Conexiones lentas o inestables\n"
+                    "• **FFmpeg**: Posibles problemas de configuración\n"
+                    "• **NAT/Firewall**: Restricciones de red del proveedor"
+                ),
+                inline=False
+            )
+            
+            embed.add_field(
+                name="💡 Soluciones Recomendadas",
+                value=(
+                    "1. **Reintentar**: Los errores pueden ser temporales\n"
+                    "2. **Verificar permisos**: Asegurar permisos de voz del bot\n"
+                    "3. **Contactar soporte**: Reportar problemas persistentes\n"
+                    "4. **Servidor local**: Para funcionalidad completa"
+                ),
+                inline=False
+            )
+        else:
+            embed.add_field(
+                name="✅ Entorno Local",
+                value="El bot está ejecutándose localmente, la funcionalidad de voz debería funcionar correctamente.",
+                inline=False
+            )
+            
+        # Información técnica
+        embed.add_field(
+            name="🔧 Información Técnica",
+            value=(
+                f"• **FFmpeg**: {ffmpeg_executable}\n"
+                f"• **Nextcord**: {nextcord.__version__}\n"
+                f"• **Python**: {__import__('sys').version.split()[0]}"
+            ),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="📞 Soporte",
+            value=(
+                "Si experimentas problemas persistentes:\n"
+                "• Verifica los logs del bot\n"
+                "• Reporta el error específico\n"
+                "• Incluye información del entorno"
+            ),
+            inline=False
+        )
+        
+        embed.set_footer(text="Use /play para probar la funcionalidad de música")
+        await interaction.followup.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Music(bot))

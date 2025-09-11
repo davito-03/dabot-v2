@@ -1,0 +1,47 @@
+# render-voice.yaml - Configuración optimizada para voz en Render
+services:
+  - type: web
+    name: dabot-v2-voice
+    env: python
+    region: oregon  # Región más cercana a servidores Discord
+    plan: starter   # Plan mínimo recomendado para voz
+    buildCommand: |
+      apt-get update && 
+      apt-get install -y ffmpeg libopus-dev libopus0 && 
+      pip install -r requirements-render-voice.txt
+    startCommand: python bot.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: FFMPEG_PATH
+        value: /usr/bin/ffmpeg
+      - key: RENDER_VOICE
+        value: "true"
+      - key: DISCORD_TOKEN
+        sync: false  # Configurar manualmente en dashboard
+    healthCheckPath: /health  # Endpoint de salud opcional
+    
+    # Configuraciones específicas para voz
+    disk:
+      name: dabot-disk
+      mountPath: /data
+      sizeGB: 1
+    
+    # Variables de entorno para optimización
+    autoDeploy: true
+    
+  # Servicio alternativo sin voz (fallback)
+  - type: web
+    name: dabot-v2-fallback
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements-render.txt
+    startCommand: python bot.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: MUSIC_DISABLED
+        value: "true"
+      - key: DISCORD_TOKEN
+        sync: false

@@ -1,7 +1,7 @@
 # configuración para render.com
 # archivo: render.yaml
 
-# Configuración optimizada para Render.com
+# Configuración optimizada para Render.com (sin Docker)
 # Archivo: render.yaml
 
 services:
@@ -21,7 +21,7 @@ services:
       - key: PREFIX
         value: "!"
       - key: WEB_PORT
-        value: "10000"
+        value: "10000" 
       - key: WEB_HOST
         value: "0.0.0.0"
       - key: WEB_ENABLED
@@ -40,15 +40,10 @@ services:
           property: connectionString
     autoDeploy: true
     region: oregon
-
+    
+# Eliminar sección de databases duplicada y usar solo una
 databases:
   - name: dabot-v2-db
     databaseName: dabot_v2
     user: dabot_user
     plan: starter
-    
-databases:
-  - name: dabot-db
-    databaseName: dabot
-    user: dabot
-    plan: free

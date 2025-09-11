@@ -1,0 +1,55 @@
+# Archivos a ignorar en Docker build
+.git
+.gitignore
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+CONTRIBUTORS.md
+LICENSE
+
+# Documentación y scripts locales
+*.md
+deploy.bat
+deploy.sh
+gestor_dabot.bat
+instalar_dabot.bat
+*.bat
+
+# Entornos virtuales locales
+venv/
+.venv/
+env/
+.env/
+
+# Archivos de configuración local
+.env
+.env.local
+.env.development
+
+# Logs y datos locales
+logs/
+*.log
+data/*.db
+data/*.sqlite
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archivos temporales
+*.tmp
+*.temp

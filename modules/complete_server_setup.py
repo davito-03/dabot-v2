@@ -1509,7 +1509,17 @@ class ServerSetupWizard(commands.Cog):
                 created_level_roles = 0
                 exclusive_channels = []
                 
-                # Buscar categoría de información para canales exclusivos
+                # Buscar categoría de chat para canales exclusivos
+                chat_category = None
+                for category_name in ["💬 CHAT", "💬 CHAT GENERAL", "💬 GENERAL", "CHAT"]:
+                    for category in guild.categories:
+                        if category.name.upper() == category_name.upper():
+                            chat_category = category
+                            break
+                    if chat_category:
+                        break
+                
+                # Buscar categoría de información para configurar permisos de solo lectura
                 info_category = None
                 for category_name in ["📋 INFORMACIÓN", "📋 INFO", "ℹ️ INFORMACIÓN", "INFORMACIÓN"]:
                     for category in guild.categories:
@@ -1549,8 +1559,8 @@ class ServerSetupWizard(commands.Cog):
                                 reason=f"Rol de nivel {level} - Configuración automática"
                             )
                         
-                        # Crear canal exclusivo para niveles altos (50+)
-                        if level >= 50 and info_category:
+                        # Crear canal exclusivo para niveles altos (50+) en categoría CHAT
+                        if level >= 50 and chat_category:
                             try:
                                 # Verificar si el canal ya existe
                                 channel_name = f"🌟┃exclusivo-{role_name.lower().replace(' ', '-')}"
@@ -1570,7 +1580,7 @@ class ServerSetupWizard(commands.Cog):
                                     
                                     exclusive_channel = await guild.create_text_channel(
                                         channel_name,
-                                        category=info_category,
+                                        category=chat_category,
                                         overwrites=overwrites,
                                         topic=f"Canal exclusivo para miembros {role_name} - ¡Felicidades por llegar hasta aquí! 🎉",
                                         reason=f"Canal exclusivo nivel {level}"
@@ -1626,11 +1636,85 @@ class ServerSetupWizard(commands.Cog):
                 
                 await announcement_channel.send(embed=embed)
                 
+            # Configurar canales de información como solo lectura
+            if info_category:
+                await self.configure_info_channels_readonly(guild, info_category, roles)
+                
             conn.close()
             
         except Exception as e:
             logger.error(f"Error configurando sistema de niveles: {e}")
     
+    async def configure_info_channels_readonly(self, guild: nextcord.Guild, info_category: nextcord.CategoryChannel, roles: Dict):
+        """Configura los canales de información como solo lectura excepto para owners/admins"""
+        try:
+            logger.info("🔒 Configurando canales de información como solo lectura...")
+            
+            # Obtener roles de administración
+            owner_role = roles.get("👑 Owner")
+            admin_role = roles.get("🛡️ Admin")
+            
+            # Recorrer todos los canales de la categoría de información
+            for channel in info_category.text_channels:
+                try:
+                    # Configurar permisos para @everyone (solo lectura)
+                    await channel.set_permissions(
+                        guild.default_role,
+                        view_channel=True,
+                        send_messages=False,
+                        add_reactions=False,
+                        create_public_threads=False,
+                        create_private_threads=False,
+                        send_messages_in_threads=False,
+                        reason="Configuración automática - Canal de información solo lectura"
+                    )
+                    
+                    # Dar permisos completos a Owner
+                    if owner_role:
+                        await channel.set_permissions(
+                            owner_role,
+                            view_channel=True,
+                            send_messages=True,
+                            manage_messages=True,
+                            embed_links=True,
+                            attach_files=True,
+                            add_reactions=True,
+                            manage_channels=True,
+                            mention_everyone=True,
+                            create_public_threads=True,
+                            create_private_threads=True,
+                            send_messages_in_threads=True,
+                            reason="Permisos completos para Owner"
+                        )
+                    
+                    # Dar permisos de administración a Admin
+                    if admin_role:
+                        await channel.set_permissions(
+                            admin_role,
+                            view_channel=True,
+                            send_messages=True,
+                            manage_messages=True,
+                            embed_links=True,
+                            attach_files=True,
+                            add_reactions=True,
+                            mention_everyone=True,
+                            create_public_threads=True,
+                            create_private_threads=True,
+                            send_messages_in_threads=True,
+                            reason="Permisos administrativos para Admin"
+                        )
+                    
+                    await asyncio.sleep(0.2)  # Evitar rate limit
+                    logger.info(f"✅ Canal {channel.name} configurado como solo lectura")
+                    
+                except Exception as e:
+                    logger.error(f"Error configurando permisos en canal {channel.name}: {e}")
+            
+            logger.info("✅ Configuración de canales de información completada")
+            
+        except Exception as e:
+            logger.error(f"Error configurando canales de información: {e}")
+
     async def setup_user_stats(self, guild: nextcord.Guild, channels: Dict, template_id: str):
         """Configurar sistema de estadísticas de usuarios"""
         try:

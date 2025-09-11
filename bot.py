@@ -45,6 +45,7 @@ from modules.welcome import Welcome
 from modules.nsfw import NSFWCommands
 from modules.bot_config import BotConfig
 from modules.config_manager import config, get_config, is_module_enabled
+from modules.autoroles_verification import AutorolesVerification
 
 # Cargar variables de entorno
 load_dotenv()
@@ -132,6 +133,18 @@ class DiscordBot(commands.Bot):
             logger.info("Tarea diaria iniciada")
         else:
             logger.info("Canal diario no configurado, omitiendo tarea diaria")
+    
+    async def on_disconnect(self):
+        """Evento cuando el bot se desconecta"""
+        logger.warning("⚠️ Bot desconectado de Discord")
+    
+    async def on_resumed(self):
+        """Evento cuando el bot reanuda la conexión"""
+        logger.info("✅ Conexión con Discord reanudada")
+    
+    async def on_connect(self):
+        """Evento cuando el bot se conecta inicialmente"""
+        logger.info("🔗 Bot conectado a Discord Gateway")
     
     async def on_command_error(self, ctx, error):
         """Manejo global de errores de comandos"""
@@ -296,12 +309,36 @@ async def main():
         logger.info(f"🦞 Estado: Viendo langostitas en el mar")
         logger.info("=" * 50)
         
-        # Ejecutar el bot
-        try:
-            await bot.start(token)
-        except Exception as start_error:
-            logger.error(f"❌ Error al iniciar bot: {start_error}")
-            raise
+        # Ejecutar el bot con reintentos
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                await bot.start(token)
+                break  # Si llega aquí, la conexión fue exitosa
+            except nextcord.LoginFailure:
+                logger.error("❌ Token de Discord inválido")
+                break  # No reintentar con token inválido
+            except (
+                nextcord.ConnectionClosed,
+                nextcord.HTTPException,
+                ConnectionError,
+                OSError
+            ) as connection_error:
+                retry_count += 1
+                logger.warning(f"⚠️ Error de conexión (intento {retry_count}/{max_retries}): {connection_error}")
+                
+                if retry_count < max_retries:
+                    wait_time = min(60, 2 ** retry_count)  # Backoff exponencial, máximo 60s
+                    logger.info(f"🔄 Reintentando conexión en {wait_time} segundos...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    logger.error("❌ Máximo número de reintentos alcanzado")
+                    raise
+            except Exception as start_error:
+                logger.error(f"❌ Error inesperado al iniciar bot: {start_error}")
+                raise
         
     except nextcord.LoginFailure:
         logger.error("❌ Token de Discord inválido")

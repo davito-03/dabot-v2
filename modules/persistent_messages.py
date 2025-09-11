@@ -405,7 +405,7 @@ class TicketPanelView(nextcord.ui.View):
         # Obtener el ticket manager
         ticket_manager = interaction.client.get_cog('TicketManager')
         if ticket_manager:
-            await ticket_manager.create_ticket(interaction)
+            await ticket_manager.create_ticket_interaction(interaction)
         else:
             await interaction.response.send_message(
                 "❌ Sistema de tickets no disponible.", ephemeral=True

@@ -22,7 +22,8 @@ class HelpSystem(commands.Cog):
             required=False,
             choices=[
                 "general", "moderacion", "entretenimiento", "economia",
-                "musica", "tickets", "voicemaster", "servidor", "emojis", "admin"
+                "musica", "tickets", "voicemaster", "servidor", "emojis", 
+                "admin", "nsfw", "niveles", "configuracion", "autoroles", "verificacion"
             ]
         )
     ):
@@ -53,7 +54,10 @@ class HelpSystem(commands.Cog):
             "🎙️ **VoiceMaster**": "`/help categoria:voicemaster` - Canales de voz temporales",
             "🏗️ **Servidor**": "`/help categoria:servidor` - Plantillas y configuración",
             "😀 **Emojis & Stickers**": "`/help categoria:emojis` - Personalización visual",
-            "⚙️ **Administración**": "`/help categoria:admin` - Comandos administrativos"
+            "📈 **Niveles**": "`/help categoria:niveles` - Sistema de experiencia y ranking",
+            "⚙️ **Configuración**": "`/help categoria:configuracion` - Configuración del bot",
+            "⚙️ **Administración**": "`/help categoria:admin` - Comandos administrativos",
+            "🔞 **NSFW**": "`/help categoria:nsfw` - Contenido para adultos (solo canales NSFW)"
         }
         
         description = embed.description + "\n\n"
@@ -70,7 +74,7 @@ class HelpSystem(commands.Cog):
         
         embed.add_field(
             name="📊 Estadísticas",
-            value=f"• Servidores: {len(self.bot.guilds)}\n• Usuarios: {len(self.bot.users)}\n• Comandos: 50+",
+            value=f"• Servidores: {len(self.bot.guilds)}\n• Usuarios: {len(self.bot.users)}\n• Comandos: 100+",
             inline=True
         )
         
@@ -98,7 +102,12 @@ class HelpSystem(commands.Cog):
             "voicemaster": self._get_voicemaster_help(),
             "servidor": self._get_server_help(),
             "emojis": self._get_emojis_help(),
-            "admin": self._get_admin_help()
+            "niveles": self._get_levels_help(),
+            "configuracion": self._get_config_help(),
+            "admin": self._get_admin_help(),
+            "nsfw": self._get_nsfw_help(),
+            "autoroles": self._get_autoroles_help(),
+            "verificacion": self._get_verification_help()
         }
         
         embed = embeds.get(categoria)
@@ -117,10 +126,11 @@ class HelpSystem(commands.Cog):
         commands_list = [
             "`/help` - Muestra este menú de ayuda",
             "`/ping` - Verifica la latencia del bot",
-            "`/userinfo [usuario]` - Información de un usuario",
-            "`/serverinfo` - Información del servidor",
-            "`/avatar [usuario]` - Avatar de un usuario",
-            "`/nivel [usuario]` - Ver nivel y experiencia"
+            "`/info` - Información del bot y del servidor",
+            "`/gato` - Imagen aleatoria de un gato",
+            "`/perro` - Imagen aleatoria de un perro",
+            "`/zorro` - Imagen aleatoria de un zorro",
+            "`/pato` - Imagen aleatoria de un pato"
         ]
         
         embed.add_field(
@@ -141,10 +151,17 @@ class HelpSystem(commands.Cog):
         commands_list = [
             "`/ban [usuario] [razón]` - Banear usuario",
             "`/kick [usuario] [razón]` - Expulsar usuario",
-            "`/timeout [usuario] [tiempo] [razón]` - Silenciar temporalmente",
             "`/warn [usuario] [razón]` - Advertir usuario",
+            "`/avisar [usuario] [razón]` - Dar un aviso a un usuario",
+            "`/avisos [usuario]` - Ver avisos de un usuario",
+            "`/warnings [usuario]` - Ver warnings de un usuario",
+            "`/quitar-aviso [usuario] [id]` - Quitar un aviso específico",
+            "`/limpiar-avisos [usuario]` - Limpiar todos los avisos",
             "`/clear [cantidad]` - Limpiar mensajes",
-            "`/slowmode [segundos]` - Modo lento del canal"
+            "`/automod` - Configurar automoderacion",
+            "`/mod-roles` - Gestionar roles de moderación",
+            "`/apelar` - Crear una apelación para ban o warning",
+            "`/appeals-stats` - Ver estadísticas de apelaciones"
         ]
         
         embed.add_field(
@@ -169,12 +186,24 @@ class HelpSystem(commands.Cog):
         )
         
         commands_list = [
-            "`/meme random` - Meme aleatorio",
-            "`/meme chiste` - Chiste del día",
-            "`/juegos verdad_o_reto` - Juego de verdad o reto",
-            "`/juegos bola8 [pregunta]` - Bola mágica 8",
+            "`/ping` - Ver latencia del bot",
+            "`/meme` - Obtener un meme aleatorio",
+            "`/cat` - Imagen aleatoria de gato",
+            "`/dog` - Imagen aleatoria de perro",
+            "`/trivia` - Preguntas de trivia",
+            "`/roll [caras]` - Lanzar dado",
+            "`/coin` - Lanzar moneda",
+            "`/8ball [pregunta]` - Bola 8 mágica",
+            "`/quote` - Cita inspiracional",
+            "`/say [mensaje]` - Hacer que el bot diga algo",
+            "`/embed [titulo] [descripcion]` - Crear embed personalizado",
+            "`/afk [razón]` - Marcar como AFK",
+            "`/botinfo` - Información del bot",
+            "`/serverinfo` - Información del servidor",
+            "`/userinfo [usuario]` - Información de usuario",
+            "`/avatar [usuario]` - Ver avatar de usuario",
+            "`/choose [opciones]` - Elegir entre opciones",
             "`/amor [usuario1] [usuario2]` - Calculadora de amor",
-            "`/publicacion` - Crear publicación temática",
             "`/confesion enviar` - Enviar confesión anónima"
         ]
         
@@ -413,6 +442,181 @@ class HelpSystem(commands.Cog):
         embed.add_field(
             name="⚠️ Requisitos",
             value="• **Emojis:** Permisos de Gestionar Emojis\n• **Stickers:** Gestionar Servidor + Nitro Nivel 2+",
+            inline=False
+        )
+        
+        return embed
+
+    def _get_levels_help(self):
+        embed = nextcord.Embed(
+            title="📊 Sistema de Niveles",
+            description="Sistema de experiencia y niveles para tu servidor",
+            color=nextcord.Color.blue()
+        )
+        
+        commands_list = [
+            "`/nivel [usuario]` - Ver nivel y experiencia",
+            "`/ranking` - Ver tabla de posiciones del servidor",
+            "`/reset-level [usuario]` - Resetear nivel de usuario",
+            "`/add-xp [usuario] [cantidad]` - Añadir experiencia",
+            "`/remove-xp [usuario] [cantidad]` - Quitar experiencia",
+            "`/level-config` - Configurar sistema de niveles",
+            "`/level-rewards` - Configurar recompensas por nivel"
+        ]
+        
+        embed.add_field(
+            name="🎯 Comandos Disponibles",
+            value="\n".join(commands_list),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="ℹ️ Información",
+            value="El sistema de niveles permite a los usuarios ganar experiencia participando activamente en el servidor.",
+            inline=False
+        )
+        
+        return embed
+
+    def _get_config_help(self):
+        embed = nextcord.Embed(
+            title="⚙️ Configuración del Servidor",
+            description="Comandos para configurar y gestionar el servidor",
+            color=nextcord.Color.dark_grey()
+        )
+        
+        commands_list = [
+            "`/setup complete` - Configuración completa del servidor",
+            "`/setup tickets` - Configurar sistema de tickets",
+            "`/setup verification` - Configurar verificación",
+            "`/setup automod` - Configurar automoderación",
+            "`/config show` - Ver configuración actual",
+            "`/config welcome` - Configurar mensajes de bienvenida",
+            "`/config farewell` - Configurar mensajes de despedida",
+            "`/config logs` - Configurar canales de logs",
+            "`/backup create` - Crear respaldo del servidor",
+            "`/backup restore` - Restaurar respaldo"
+        ]
+        
+        embed.add_field(
+            name="🔧 Comandos Disponibles",
+            value="\n".join(commands_list),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Permisos Requeridos",
+            value="La mayoría de estos comandos requieren permisos de **Administrador** o **Gestionar Servidor**.",
+            inline=False
+        )
+        
+        return embed
+
+    def _get_nsfw_help(self):
+        embed = nextcord.Embed(
+            title="🔞 Comandos NSFW",
+            description="Contenido para adultos - Solo en canales NSFW",
+            color=nextcord.Color.red()
+        )
+        
+        commands_list = [
+            "`/nsfw waifu` - Imagen waifu aleatoria",
+            "`/nsfw neko` - Imagen neko aleatoria",
+            "`/nsfw trap` - Imagen trap aleatoria",
+            "`/nsfw blowjob` - Contenido específico",
+            "`/nsfw pussy` - Contenido específico",
+            "`/nsfw feet` - Contenido específico",
+            "`/nsfw yuri` - Contenido yuri",
+            "`/nsfw tentacle` - Contenido tentáculos",
+            "`/nsfw gif` - GIFs NSFW aleatorios",
+            "`/rule34 [tags]` - Buscar en Rule34",
+            "`/gelbooru [tags]` - Buscar en Gelbooru"
+        ]
+        
+        embed.add_field(
+            name="🔞 Comandos Disponibles",
+            value="\n".join(commands_list),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Restricciones",
+            value="• Solo funciona en canales marcados como NSFW\n• Requiere edad +18 verificada\n• Contenido filtrado por seguridad",
+            inline=False
+        )
+        
+        return embed
+
+    def _get_autoroles_help(self):
+        embed = nextcord.Embed(
+            title="🎭 Sistema de Autoroles",
+            description="Sistema avanzado de autoroles con plantillas específicas",
+            color=nextcord.Color.purple()
+        )
+        
+        commands_list = [
+            "`/autoroles` - Configurar sistema de autoroles",
+            "🎮 **Gaming:** Juegos, rangos, plataformas",
+            "🎵 **Música:** Géneros musicales y actividades",
+            "👥 **Comunidad:** Intereses y personalidad",
+            "📚 **Estudio:** Materias y métodos de estudio"
+        ]
+        
+        embed.add_field(
+            name="🎯 Configuración",
+            value="\n".join(commands_list),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="📋 Características",
+            value="• Roles organizados por categorías\n"
+                  "• Botones interactivos para selección\n"
+                  "• Canal dedicado de autoroles\n"
+                  "• Soporte para múltiples plantillas",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Permisos Requeridos",
+            value="**Gestionar Roles** para configurar el sistema",
+            inline=False
+        )
+        
+        return embed
+
+    def _get_verification_help(self):
+        embed = nextcord.Embed(
+            title="🛡️ Sistema de Verificación",
+            description="Protege tu servidor con verificación automática",
+            color=nextcord.Color.green()
+        )
+        
+        commands_list = [
+            "`/verification` - Configurar sistema de verificación",
+            "🟢 **Simple:** Solo requiere un clic",
+            "🟡 **Captcha:** Incluye captcha de seguridad",
+            "🔴 **Preguntas:** Requiere responder preguntas"
+        ]
+        
+        embed.add_field(
+            name="🔧 Configuración",
+            value="\n".join(commands_list),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🔒 Características",
+            value="• Canal de verificación que se oculta automáticamente\n"
+                  "• Rol de verificado automático\n"
+                  "• Protección contra bots y spam\n"
+                  "• Configuración de permisos automática",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Permisos Requeridos",
+            value="**Gestionar Servidor** para configurar la verificación",
             inline=False
         )
         

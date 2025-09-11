@@ -1,1 +1,74 @@
-{}
+{
+  "1413959468365905962": {
+    "1243711932985249855": {
+      "xp": 51,
+      "level": 1,
+      "messages": 3,
+      "last_message": 1757425805.687672,
+      "voice_time": 0,
+      "joined_voice": null
+    },
+    "600041740124160011": {
+      "xp": 74,
+      "level": 1,
+      "messages": 4,
+      "last_message": 1757461670.641393,
+      "voice_time": 0,
+      "joined_voice": null
+    }
+  },
+  "1412553738710941879": {
+    "1412197495328604241": {
+      "xp": 61,
+      "level": 1,
+      "messages": 3,
+      "last_message": 1757530032.473165,
+      "voice_time": 0,
+      "joined_voice": null
+    },
+    "1263819521081479273": {
+      "xp": 37,
+      "level": 1,
+      "messages": 2,
+      "last_message": 1757526058.002111,
+      "voice_time": 0,
+      "joined_voice": null
+    },
+    "1122483879132016740": {
+      "xp": 64,
+      "level": 1,
+      "messages": 3,
+      "last_message": 1757530047.477983,
+      "voice_time": 0,
+      "joined_voice": null
+    }
+  },
+  "1340567121419173958": {
+    "600041740124160011": {
+      "xp": 24,
+      "level": 1,
+      "messages": 1,
+      "last_message": 1757423674.632148,
+      "voice_time": 0,
+      "joined_voice": null
+    }
+  },
+  "1412999864631165101": {
+    "600041740124160011": {
+      "xp": 61,
+      "level": 1,
+      "messages": 3,
+      "last_message": 1757459461.836516,
+      "voice_time": 0,
+      "joined_voice": null
+    },
+    "1412197495328604241": {
+      "xp": 45,
+      "level": 1,
+      "messages": 2,
+      "last_message": 1757459560.764526,
+      "voice_time": 0,
+      "joined_voice": null
+    }
+  }
+}

@@ -68,6 +68,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios importantes"},
                             {"name": "🎉┃eventos", "type": "text", "topic": "Eventos y sorteos"},
+                            {"name": "🎫┃crear-ticket", "type": "text", "topic": "Crea un ticket de soporte aquí"},
                             {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
                             {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
@@ -109,6 +110,13 @@ class ServerSetupWizard(commands.Cog):
                         ]
                     },
                     {
+                        "name": "🎛️ VOICEMASTER",
+                        "channels": [
+                            {"name": "➕┃Crear Canal de Voz", "type": "voice", "limit": 0, "special": "voicemaster_create"},
+                            {"name": "🎛️┃panel-voicemaster", "type": "text", "topic": "Panel de control para canales de voz temporales", "special": "voicemaster_panel"}
+                        ]
+                    },
+                    {
                         "name": "� LOGS",
                         "channels": [
                             {"name": "🎫┃registro-tickets", "type": "text", "topic": "Registro de tickets del servidor", "staff_only": True},
@@ -121,12 +129,28 @@ class ServerSetupWizard(commands.Cog):
                 ],
                 "roles": [
                     {"name": "👑 Owner", "color": 0xff0000, "permissions": ["administrator"], "hoist": True},
-                    {"name": "🛡️ Admin", "color": 0xff6b6b, "permissions": ["manage_guild", "manage_channels", "manage_roles"], "hoist": True},
-                    {"name": "🔨 Moderador", "color": 0x4ecdc4, "permissions": ["manage_messages", "kick_members", "mute_members"], "hoist": True},
-                    {"name": "🎤 VIP", "color": 0xf1c40f, "permissions": [], "hoist": True},
-                    {"name": "⭐ Suscriptor", "color": 0x9b59b6, "permissions": [], "hoist": False},
-                    {"name": "🎮 Gamer", "color": 0x3498db, "permissions": [], "hoist": False},
-                    {"name": "🎨 Artista", "color": 0xe67e22, "permissions": [], "hoist": False},
+                    {"name": "🛡️ Admin", "color": 0xff6b6b, "permissions": [
+                        "manage_guild", "manage_channels", "manage_roles", "ban_members", 
+                        "kick_members", "manage_messages", "manage_nicknames", "manage_emojis", 
+                        "view_audit_log", "priority_speaker"
+                    ], "hoist": True},
+                    {"name": "🔨 Moderador", "color": 0x4ecdc4, "permissions": [
+                        "manage_messages", "kick_members", "mute_members", "deafen_members",
+                        "move_members", "manage_nicknames", "read_message_history", "view_channel"
+                    ], "hoist": True},
+                    {"name": "🎤 VIP", "color": 0xf1c40f, "permissions": [
+                        "embed_links", "attach_files", "add_reactions", "use_external_emojis",
+                        "stream", "priority_speaker"
+                    ], "hoist": True},
+                    {"name": "⭐ Suscriptor", "color": 0x9b59b6, "permissions": [
+                        "embed_links", "attach_files", "add_reactions", "use_external_emojis"
+                    ], "hoist": False},
+                    {"name": "🎮 Gamer", "color": 0x3498db, "permissions": [
+                        "add_reactions", "use_external_emojis"
+                    ], "hoist": False},
+                    {"name": "🎨 Artista", "color": 0xe67e22, "permissions": [
+                        "embed_links", "attach_files", "add_reactions"
+                    ], "hoist": False},
                     {"name": "🔇 Silenciado", "color": 0x95a5a6, "permissions": [], "hoist": False}
                 ]
             },
@@ -151,6 +175,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios y novedades"},
                             {"name": "🆕┃novedades-gaming", "type": "text", "topic": "Últimas noticias del gaming"},
+                            {"name": "🎫┃crear-ticket", "type": "text", "topic": "Crea un ticket de soporte aquí"},
                             {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
                             {"name": "📊┃estadísticas", "type": "text", "topic": "Estadísticas del servidor"},
                             {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
@@ -241,6 +266,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios importantes"},
                             {"name": "📚┃recursos", "type": "text", "topic": "Recursos útiles para developers"},
+                            {"name": "🎫┃crear-ticket", "type": "text", "topic": "Crea un ticket de soporte aquí"},
                             {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
                             {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
@@ -340,7 +366,8 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📖┃reglas", "type": "text", "topic": "Normas de la comunidad {guild_name}"},
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios importantes"},
                             {"name": "🎉┃eventos", "type": "text", "topic": "Eventos de la comunidad"},
-                            {"name": "🎉┃anuncios-nivel", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "�┃crear-ticket", "type": "text", "topic": "Crea un ticket de soporte aquí"},
+                            {"name": "�🎉┃anuncios-nivel", "type": "text", "topic": "Anuncios de subida de nivel"},
                             {"name": "📈┃stats", "type": "text", "topic": "Estadísticas de la comunidad"},
                             {"name": "📋┃info", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
@@ -430,6 +457,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios y novedades musicales"},
                             {"name": "🎤┃eventos-musicales", "type": "text", "topic": "Eventos y conciertos"},
                             {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "🎫┃crear-ticket", "type": "text", "topic": "Crea un ticket para contactar con el staff"},
                             {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     },
@@ -518,6 +546,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "📢┃anuncios", "type": "text", "topic": "Anuncios y novedades anime"},
                             {"name": "🗓️┃calendario-anime", "type": "text", "topic": "Calendario de estrenos anime"},
                             {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "🎫┃crear-ticket", "type": "text", "topic": "Crea un ticket para contactar con el staff"},
                             {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     },
@@ -616,6 +645,7 @@ class ServerSetupWizard(commands.Cog):
                             {"name": "🏆┃resultados", "type": "text", "topic": "Resultados de partidas"},
                             {"name": "📅┃calendario", "type": "text", "topic": "Calendario de eventos"},
                             {"name": "📈┃level-ups", "type": "text", "topic": "Anuncios de subida de nivel"},
+                            {"name": "🎫┃crear-ticket", "type": "text", "topic": "Crea un ticket para contactar con el staff"},
                             {"name": "📋┃información", "type": "text", "topic": "Información e invitaciones del servidor"}
                         ]
                     },
@@ -774,6 +804,15 @@ class ServerSetupWizard(commands.Cog):
                 except Exception as e:
                     logger.error(f"Error creando rol {role_data['name']}: {e}")
             
+            # Asignar rol Owner al dueño del servidor
+            owner_role = created_roles.get("👑 Owner")
+            if owner_role and guild.owner:
+                try:
+                    await guild.owner.add_roles(owner_role, reason="Asignar rol Owner al dueño del servidor")
+                    logger.info(f"✅ Rol Owner asignado a {guild.owner.name}")
+                except Exception as e:
+                    logger.error(f"Error asignando rol Owner: {e}")
+            
             # Paso 2: Crear categorías y canales
             setup_embed.description = "📁 Creando categorías y canales..."
             await setup_message.edit(embed=setup_embed)
@@ -790,24 +829,105 @@ class ServerSetupWizard(commands.Cog):
                     # Crear canales en la categoría
                     for channel_data in category_data["channels"]:
                         try:
-                            # Configurar permisos si es staff only
+                            # Configurar permisos básicos
                             overwrites = {}
-                            if channel_data.get("staff_only", False):
+                            
+                            # Configurar canales NSFW
+                            if channel_data.get("nsfw", False):
+                                # Solo usuarios con rol específico pueden ver canales NSFW
+                                overwrites[guild.default_role] = nextcord.PermissionOverwrite(
+                                    read_messages=False,
+                                    send_messages=False
+                                )
+                                # Permitir a roles específicos
+                                nsfw_roles = ["👑 Owner", "🛡️ Admin", "🔨 Moderador", "🎤 VIP", "⭐ Suscriptor"]
+                                for role_name in nsfw_roles:
+                                    role = created_roles.get(role_name)
+                                    if role:
+                                        overwrites[role] = nextcord.PermissionOverwrite(
+                                            read_messages=True,
+                                            send_messages=True,
+                                            embed_links=True,
+                                            attach_files=True
+                                        )
+                            
+                            # Configurar canales staff only
+                            elif channel_data.get("staff_only", False):
                                 # Denegar acceso a @everyone
                                 overwrites[guild.default_role] = nextcord.PermissionOverwrite(
                                     read_messages=False,
                                     send_messages=False
                                 )
                                 
-                                # Permitir acceso a roles de staff
-                                staff_roles = ["Owner", "Admin", "Moderador", "🛡️ Admin", "🔨 Moderador"]
+                                # Permitir acceso completo a roles de staff
+                                staff_roles = ["👑 Owner", "🛡️ Admin", "🔨 Moderador"]
                                 for role_name in staff_roles:
-                                    role = created_roles.get(role_name) or created_roles.get(f"👑 {role_name}") or created_roles.get(f"🛡️ {role_name}") or created_roles.get(f"🔨 {role_name}")
+                                    role = created_roles.get(role_name)
                                     if role:
                                         overwrites[role] = nextcord.PermissionOverwrite(
                                             read_messages=True,
-                                            send_messages=True
+                                            send_messages=True,
+                                            manage_messages=True,
+                                            embed_links=True,
+                                            attach_files=True,
+                                            add_reactions=True,
+                                            manage_channels=True if role_name in ["👑 Owner", "🛡️ Admin"] else False
                                         )
+                            
+                            # Configurar canales normales con permisos mejorados
+                            else:
+                                # Permisos básicos para @everyone
+                                overwrites[guild.default_role] = nextcord.PermissionOverwrite(
+                                    read_messages=True,
+                                    send_messages=True,
+                                    embed_links=False,
+                                    attach_files=False,
+                                    add_reactions=True,
+                                    use_external_emojis=False
+                                )
+                                
+                                # Permisos mejorados para roles especiales
+                                special_permissions = {
+                                    "👑 Owner": {
+                                        "manage_messages": True, "manage_channels": True, "embed_links": True,
+                                        "attach_files": True, "use_external_emojis": True, "mention_everyone": True
+                                    },
+                                    "🛡️ Admin": {
+                                        "manage_messages": True, "embed_links": True, "attach_files": True,
+                                        "use_external_emojis": True, "mention_everyone": True
+                                    },
+                                    "🔨 Moderador": {
+                                        "manage_messages": True, "embed_links": True, "attach_files": True,
+                                        "use_external_emojis": True
+                                    },
+                                    "🎤 VIP": {
+                                        "embed_links": True, "attach_files": True, "use_external_emojis": True
+                                    },
+                                    "⭐ Suscriptor": {
+                                        "embed_links": True, "attach_files": True, "use_external_emojis": True
+                                    },
+                                    "🎮 Gamer": {
+                                        "use_external_emojis": True
+                                    },
+                                    "🎨 Artista": {
+                                        "embed_links": True, "attach_files": True
+                                    }
+                                }
+                                
+                                for role_name, perms in special_permissions.items():
+                                    role = created_roles.get(role_name)
+                                    if role:
+                                        overwrites[role] = nextcord.PermissionOverwrite(**perms)
+                                
+                                # Rol silenciado - sin permisos
+                                muted_role = created_roles.get("🔇 Silenciado")
+                                if muted_role:
+                                    overwrites[muted_role] = nextcord.PermissionOverwrite(
+                                        send_messages=False,
+                                        add_reactions=False,
+                                        speak=False,
+                                        stream=False
+                                    )
                             
                             if channel_data["type"] == "text":
                                 # Reemplazar {guild_name} en el topic
@@ -818,8 +938,18 @@ class ServerSetupWizard(commands.Cog):
                                     category=category,
                                     topic=topic,
                                     overwrites=overwrites,
+                                    nsfw=channel_data.get("nsfw", False),  # Configurar NSFW si está especificado
                                     reason=f"Configuración automática - {template['name']}"
                                 )
+                                
+                                # Configurar restricción de edad si es NSFW
+                                if channel_data.get("nsfw", False):
+                                    try:
+                                        await channel.edit(nsfw=True)
+                                        await asyncio.sleep(0.2)  # Pausa para evitar rate limits
+                                    except Exception as nsfw_error:
+                                        print(f"⚠️ Error configurando NSFW para {channel.name}: {nsfw_error}")
+                                        
                             else:  # voice
                                 channel = await guild.create_voice_channel(
                                     name=channel_data["name"],
@@ -1210,31 +1340,77 @@ class ServerSetupWizard(commands.Cog):
     async def configure_special_permissions(self, guild: nextcord.Guild, channels: Dict, roles: Dict):
         """Configura permisos especiales adicionales"""
         try:
-            # Configurar permisos para rol silenciado
+            # Configurar permisos para rol silenciado en TODOS los canales
             muted_role = roles.get("🔇 Silenciado")
             if muted_role:
+                logger.info("Configurando permisos para rol silenciado...")
+                
+                # Canales de texto
                 for channel in guild.text_channels:
                     try:
                         await channel.set_permissions(
                             muted_role,
                             send_messages=False,
                             add_reactions=False,
-                            speak=False,
+                            create_public_threads=False,
+                            create_private_threads=False,
+                            send_messages_in_threads=False,
                             reason="Configuración automática - Rol silenciado"
                         )
-                    except:
-                        pass
+                        await asyncio.sleep(0.2)  # Evitar rate limit
+                    except Exception as e:
+                        logger.warning(f"Error configurando permisos silenciado en {channel.name}: {e}")
                 
+                # Canales de voz
                 for channel in guild.voice_channels:
                     try:
                         await channel.set_permissions(
                             muted_role,
                             speak=False,
                             stream=False,
+                            use_voice_activation=False,
                             reason="Configuración automática - Rol silenciado"
                         )
-                    except:
-                        pass
+                        await asyncio.sleep(0.2)  # Evitar rate limit
+                    except Exception as e:
+                        logger.warning(f"Error configurando permisos silenciado en voice {channel.name}: {e}")
+            
+            # Configurar permisos especiales para admins en canales importantes
+            admin_role = roles.get("🛡️ Admin")
+            owner_role = roles.get("👑 Owner")
+            
+            if admin_role or owner_role:
+                # Canales donde admins necesitan permisos especiales
+                important_channels = [
+                    "👋┃bienvenida", "📖┃reglas", "📢┃anuncios", 
+                    "🎉┃eventos", "📋┃información"
+                ]
+                
+                for channel_name in important_channels:
+                    channel = channels.get(channel_name)
+                    if channel:
+                        try:
+                            if admin_role:
+                                await channel.set_permissions(
+                                    admin_role,
+                                    manage_messages=True,
+                                    manage_channels=True,
+                                    mention_everyone=True,
+                                    reason="Permisos administrativos especiales"
+                                )
+                            if owner_role:
+                                await channel.set_permissions(
+                                    owner_role,
+                                    manage_messages=True,
+                                    manage_channels=True,
+                                    mention_everyone=True,
+                                    reason="Permisos de propietario"
+                                )
+                            await asyncio.sleep(0.2)
+                        except Exception as e:
+                            logger.warning(f"Error configurando permisos admin en {channel_name}: {e}")
+            
+            logger.info("✅ Permisos especiales configurados correctamente")
             
         except Exception as e:
             logger.error(f"Error configurando permisos especiales: {e}")
@@ -1757,6 +1933,134 @@ class ConfirmationView(nextcord.ui.View):
             color=nextcord.Color.red()
         )
         await interaction.response.edit_message(embed=cancel_embed, view=None)
+
+    @nextcord.slash_command(name="setup-autoroles", description="Configurar autoroles y verificación avanzados")
+    async def setup_autoroles_verification(self, interaction: nextcord.Interaction):
+        """Comando para configurar autoroles y verificación"""
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("❌ Necesitas permisos de administrador.", ephemeral=True)
+            return
+        
+        embed = nextcord.Embed(
+            title="🎭 Configuración Avanzada",
+            description="Configura autoroles y verificación para tu servidor",
+            color=nextcord.Color.blue()
+        )
+        
+        embed.add_field(
+            name="🎭 Autoroles",
+            value="• Sistema de roles automáticos por categorías\n"
+                  "• Plantillas específicas por tipo de servidor\n"
+                  "• Canal interactivo con botones",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🛡️ Verificación",
+            value="• Protección contra bots y spam\n"
+                  "• Canal que se oculta automáticamente\n"
+                  "• Múltiples tipos de verificación",
+            inline=False
+        )
+        
+        view = AutorolesVerificationSetupView(self)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
+class AutorolesVerificationSetupView(nextcord.ui.View):
+    """Vista para configurar autoroles y verificación"""
+    
+    def __init__(self, cog):
+        super().__init__(timeout=300)
+        self.cog = cog
+    
+    @nextcord.ui.button(label="🎭 Configurar Autoroles", style=nextcord.ButtonStyle.primary, emoji="🎭")
+    async def setup_autoroles(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        """Configurar sistema de autoroles"""
+        try:
+            # Importar el módulo de autoroles
+            from .autoroles_verification import AutorolesVerification
+            autoroles_cog = AutorolesVerification(self.cog.bot)
+            
+            # Ejecutar configuración de autoroles
+            await autoroles_cog.autoroles_setup(interaction)
+            
+        except Exception as e:
+            logger.error(f"Error configurando autoroles: {e}")
+            await interaction.response.send_message("❌ Error configurando autoroles.", ephemeral=True)
+    
+    @nextcord.ui.button(label="🛡️ Configurar Verificación", style=nextcord.ButtonStyle.success, emoji="🛡️")
+    async def setup_verification(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        """Configurar sistema de verificación"""
+        try:
+            # Importar el módulo de verificación
+            from .autoroles_verification import AutorolesVerification
+            verification_cog = AutorolesVerification(self.cog.bot)
+            
+            # Ejecutar configuración de verificación
+            await verification_cog.verification_setup(interaction)
+            
+        except Exception as e:
+            logger.error(f"Error configurando verificación: {e}")
+            await interaction.response.send_message("❌ Error configurando verificación.", ephemeral=True)
+    
+    @nextcord.ui.button(label="⚡ Configurar Ambos", style=nextcord.ButtonStyle.secondary, emoji="⚡")
+    async def setup_both(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        """Configurar autoroles y verificación juntos"""
+        embed = nextcord.Embed(
+            title="⚡ Configuración Completa",
+            description="Se configurarán autoroles y verificación automáticamente",
+            color=nextcord.Color.gold()
+        )
+        
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        
+        try:
+            from .autoroles_verification import AutorolesVerification
+            autoroles_cog = AutorolesVerification(self.cog.bot)
+            
+            # Configurar verificación primero
+            result = await autoroles_cog.setup_verification_system(interaction.guild, "simple")
+            
+            if result["success"]:
+                # Después configurar autoroles básicos (comunidad por defecto)
+                autoroles_result = await autoroles_cog.create_autoroles(interaction.guild, "community", ["intereses", "personalidad"])
+                
+                if autoroles_result["success"]:
+                    # Crear canal de autoroles
+                    channel = await autoroles_cog.setup_autorole_channel(interaction.guild, "community", autoroles_result["roles"])
+                    
+                    final_embed = nextcord.Embed(
+                        title="✅ Configuración Completada",
+                        description="Se han configurado exitosamente:",
+                        color=nextcord.Color.green()
+                    )
+                    
+                    final_embed.add_field(
+                        name="🛡️ Verificación",
+                        value=f"• Canal: {result['verification_channel'].mention}\n"
+                              f"• Rol: {result['verified_role'].mention}",
+                        inline=False
+                    )
+                    
+                    if channel:
+                        final_embed.add_field(
+                            name="🎭 Autoroles",
+                            value=f"• Canal: {channel.mention}\n"
+                                  f"• Categorías: Intereses, Personalidad",
+                            inline=False
+                        )
+                    
+                    await interaction.edit_original_message(embed=final_embed, view=None)
+                else:
+                    await interaction.edit_original_message(content="⚠️ Verificación configurada, pero error con autoroles.", view=None)
+            else:
+                await interaction.edit_original_message(content=f"❌ Error: {result['error']}", view=None)
+                
+        except Exception as e:
+            logger.error(f"Error en configuración completa: {e}")
+            await interaction.edit_original_message(content="❌ Error durante la configuración.", view=None)
+
 
 def setup(bot):
     """Función para añadir el cog al bot"""

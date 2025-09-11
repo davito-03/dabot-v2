@@ -1,1 +1,98 @@
-{}
+{
+  "1413959468365905962": {
+    "enabled": true,
+    "xp_per_message": [
+      15,
+      25
+    ],
+    "xp_cooldown": 60,
+    "level_up_message": true,
+    "level_up_channel": null,
+    "no_xp_channels": [],
+    "no_xp_roles": [],
+    "multiplier_roles": {},
+    "level_roles": {},
+    "stack_roles": false,
+    "remove_previous_roles": true,
+    "announce_channel": null,
+    "custom_level_messages": {},
+    "reset_on_leave": false,
+    "voice_xp": {
+      "enabled": false,
+      "xp_per_minute": 5,
+      "min_members": 2
+    }
+  },
+  "1412553738710941879": {
+    "enabled": true,
+    "xp_per_message": [
+      15,
+      25
+    ],
+    "xp_cooldown": 60,
+    "level_up_message": true,
+    "level_up_channel": null,
+    "no_xp_channels": [],
+    "no_xp_roles": [],
+    "multiplier_roles": {},
+    "level_roles": {},
+    "stack_roles": false,
+    "remove_previous_roles": true,
+    "announce_channel": null,
+    "custom_level_messages": {},
+    "reset_on_leave": false,
+    "voice_xp": {
+      "enabled": false,
+      "xp_per_minute": 5,
+      "min_members": 2
+    }
+  },
+  "1340567121419173958": {
+    "enabled": true,
+    "xp_per_message": [
+      15,
+      25
+    ],
+    "xp_cooldown": 60,
+    "level_up_message": true,
+    "level_up_channel": null,
+    "no_xp_channels": [],
+    "no_xp_roles": [],
+    "multiplier_roles": {},
+    "level_roles": {},
+    "stack_roles": false,
+    "remove_previous_roles": true,
+    "announce_channel": null,
+    "custom_level_messages": {},
+    "reset_on_leave": false,
+    "voice_xp": {
+      "enabled": false,
+      "xp_per_minute": 5,
+      "min_members": 2
+    }
+  },
+  "1412999864631165101": {
+    "enabled": true,
+    "xp_per_message": [
+      15,
+      25
+    ],
+    "xp_cooldown": 60,
+    "level_up_message": true,
+    "level_up_channel": null,
+    "no_xp_channels": [],
+    "no_xp_roles": [],
+    "multiplier_roles": {},
+    "level_roles": {},
+    "stack_roles": false,
+    "remove_previous_roles": true,
+    "announce_channel": null,
+    "custom_level_messages": {},
+    "reset_on_leave": false,
+    "voice_xp": {
+      "enabled": false,
+      "xp_per_minute": 5,
+      "min_members": 2
+    }
+  }
+}

@@ -8,6 +8,18 @@
         "timestamp": "2025-09-05T01:02:02.446157",
         "active": true
       }
+    ],
+    "655467845026578440": [
+      {
+        "id": 1,
+        "reason": "gol del elche",
+        "moderator": "davito_03",
+        "moderator_id": 600041740124160011,
+        "timestamp": "2025-09-08T23:35:13.873494",
+        "active": false,
+        "removed_by": "davito_03",
+        "removed_at": "2025-09-08T23:36:41.447818"
+      }
     ]
   }
 }

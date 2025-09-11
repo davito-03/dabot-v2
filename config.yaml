@@ -549,7 +549,7 @@ advanced:
     enabled: false               # Activar modo debug
     log_level: 'INFO'            # Nivel de logs: DEBUG, INFO, WARNING, ERROR
     save_errors: true            # Guardar errores en archivos
-    sync_commands: false         # Sincronizar slash commands (solo activar si es necesario)
+    sync_commands: true          # Sincronizar slash commands (solo activar si es necesario)
 
 # ================================================================================
 # 🎯 CONFIGURACIÓN ESPECÍFICA DEL SERVIDOR

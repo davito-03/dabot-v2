@@ -1,3 +1,27 @@
+# DaBot v2 - .gitignore
+
+# Archivos de configuración sensibles
+.env
+.env.local
+.env.production
+.env.development
+config.json
+tokens.json
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+database.db
+data/database.db
+
+# Logs
+*.log
+logs/
+bot.log
+error.log
+debug.log
+
 # Variables de entorno (contiene tokens secretos)
 .env
 
@@ -34,6 +58,54 @@ env/
 .vscode/
 .idea/
 *.swp
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Archivos temporales del bot
+temp/
+tmp/
+cache/
+downloads/
+uploads/
+transcripts/
+backups/
+
+# Archivos de backup
+*.bak
+*.backup
+*.old
+gestor_dabot_backup.bat
+
+# Audio/Video temporales
+*.mp3
+*.mp4
+*.wav
+*.webm
+music_cache/
+audio_cache/
+
+# Imagenes temporales
+temp_images/
+generated_images/
+meme_cache/
+
+# Archivos de proceso
+*.pid
+*.lock
+
+# Bot specific
+fish_data_backup.json
+user_data_backup.json
+server_configs_backup.json
+
+# Test files
+test_*.py
+debug_*.py
+experimental/
+deprecated/
 *.swo
 *~
 

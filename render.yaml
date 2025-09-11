@@ -4,19 +4,38 @@
 services:
   - type: web
     name: dabot-v2
-    runtime: python3
+    env: python
+    plan: starter
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
     envVars:
       - key: DISCORD_TOKEN
         sync: false
-      - key: DAILY_CHANNEL_ID  
-        sync: false
+      - key: PREFIX
+        value: "!"
+      - key: WEB_PORT
+        value: "10000"
+      - key: WEB_HOST
+        value: "0.0.0.0"
+      - key: WEB_ENABLED
+        value: "true"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: LOG_LEVEL
+        value: "INFO"
+      - key: TIMEZONE
+        value: "UTC"
       - key: DATABASE_URL
         fromDatabase:
-          name: dabot-db
+          name: dabot-v2-db
           property: connectionString
-    autoDeploy: false
+    autoDeploy: true
+
+databases:
+  - name: dabot-v2-db
+    databaseName: dabot_v2
+    user: dabot_user
+    plan: starter
     
 databases:
   - name: dabot-db

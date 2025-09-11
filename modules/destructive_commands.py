@@ -98,11 +98,6 @@ class DestructiveCommands(commands.Cog):
     async def nuclear_reset(self, interaction, guild):
         """Comando para eliminar todos los canales, categorías y roles"""
         
-        # VERIFICACIÓN CRÍTICA: Solo el owner puede ejecutar esto
-        if not await self.is_owner_verified(interaction, guild):
-            await self.handle_unauthorized_attempt(interaction, guild)
-            return
-        
         # Crear embed de confirmación
         embed = nextcord.Embed(
             title="☢️ COMANDO NUCLEAR ACTIVADO",
@@ -115,8 +110,11 @@ class DestructiveCommands(commands.Cog):
         
         try:
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            message = await interaction.original_response()
+            view.set_message(message)
         except:
-            await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+            message = await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+            view.set_message(message)
     
     async def execute_nuclear_reset(self, interaction, guild):
         """Ejecutar el reset nuclear del servidor"""
@@ -225,6 +223,16 @@ class DestructiveCommands(commands.Cog):
     async def nuclear_reset_command(self, interaction: nextcord.Interaction):
         """Comando slash para reset nuclear del servidor"""
         
+        # VERIFICACIÓN CRÍTICA: Solo el owner puede ejecutar esto
+        if interaction.user.id != interaction.guild.owner_id:
+            embed = nextcord.Embed(
+                title="🚨 Acceso Denegado",
+                description=f"❌ **Solo el propietario del servidor puede usar este comando.**\n\n👑 **Propietario:** <@{interaction.guild.owner_id}>",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
         # Verificar timeout del usuario
         if await self.check_user_timeout(interaction):
             return
@@ -238,6 +246,11 @@ class ConfirmResetView(nextcord.ui.View):
         self.cog = cog
         self.user = user
         self.confirmed = False
+        self.message = None  # Para guardar referencia al mensaje
+    
+    def set_message(self, message):
+        """Establecer la referencia al mensaje"""
+        self.message = message
     
     @nextcord.ui.button(
         label="✅ CONFIRMAR RESET",

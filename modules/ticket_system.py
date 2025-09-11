@@ -74,15 +74,22 @@ class TicketDB:
             logger.error(f"error inicializando base de datos de tickets: {e}")
     
     def create_ticket(self, guild_id: int, channel_id: int, user_id: int, reason: str = None):
-        """crear nuevo ticket"""
+        """crear nuevo ticket con numeración automática"""
         try:
             with sqlite3.connect(self.db_path) as conn:
+                # Obtener el próximo número de ticket para este servidor
+                cursor = conn.execute(
+                    "SELECT COUNT(*) FROM tickets WHERE guild_id = ?",
+                    (guild_id,)
+                )
+                ticket_number = cursor.fetchone()[0] + 1
+                
                 cursor = conn.execute(
                     "INSERT INTO tickets (guild_id, channel_id, user_id, reason) VALUES (?, ?, ?, ?)",
                     (guild_id, channel_id, user_id, reason)
                 )
                 conn.commit()
-                return cursor.lastrowid
+                return ticket_number  # Retornar número de ticket en lugar de ID
         except Exception as e:
             logger.error(f"error creando ticket: {e}")
             return None
@@ -225,25 +232,59 @@ class TicketControlView(nextcord.ui.View):
         super().__init__(timeout=None)
         self.ticket_cog = ticket_cog
     
+    def is_staff(self, member, guild):
+        """verificar si el usuario es staff (moderador, admin o owner)"""
+        if member.guild_permissions.administrator:
+            return True
+        if member.id == guild.owner_id:
+            return True
+        
+        # Verificar roles de staff comunes
+        staff_role_names = ['staff', 'moderador', 'moderadora', 'mod', 'admin', 'administrador', 'administrator', 'helper', 'ayudante']
+        for role in member.roles:
+            if any(staff_name in role.name.lower() for staff_name in staff_role_names):
+                return True
+        
+        # Verificar permisos específicos de moderación
+        if (member.guild_permissions.manage_messages or 
+            member.guild_permissions.kick_members or 
+            member.guild_permissions.ban_members or
+            member.guild_permissions.manage_roles):
+            return True
+            
+        return False
+    
     @nextcord.ui.button(label="🔒 Cerrar Ticket", style=nextcord.ButtonStyle.danger, custom_id="close_ticket")
     async def close_ticket(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """cerrar ticket con transcripción automática"""
+        """cerrar ticket con transcripción automática - SOLO STAFF"""
+        
+        # Verificar si es staff
+        if not self.is_staff(interaction.user, interaction.guild):
+            embed = nextcord.Embed(
+                title="❌ Sin Permisos",
+                description="🚫 **Solo el staff puede cerrar tickets**\n\n👮 Roles con permisos:\n• Administradores\n• Moderadores\n• Usuarios con permisos de moderación",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
         await self.ticket_cog.close_ticket_interaction(interaction)
-    
-    @nextcord.ui.button(label="📋 Transcripción", style=nextcord.ButtonStyle.secondary, custom_id="ticket_transcript")
-    async def transcript(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """generar transcripción manual"""
-        await self.ticket_cog.generate_transcript(interaction)
     
     @nextcord.ui.button(label="👥 Agregar Usuario", style=nextcord.ButtonStyle.primary, custom_id="add_user")
     async def add_user(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """agregar usuario al ticket"""
+        """agregar usuario al ticket - SOLO STAFF"""
+        
+        # Verificar si es staff
+        if not self.is_staff(interaction.user, interaction.guild):
+            embed = nextcord.Embed(
+                title="❌ Sin Permisos",
+                description="🚫 **Solo el staff puede agregar usuarios a tickets**",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
         await self.ticket_cog.add_user_to_ticket(interaction)
-    
-    @nextcord.ui.button(label="🔄 Reclasificar", style=nextcord.ButtonStyle.secondary, custom_id="rename_ticket")
-    async def rename_ticket(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        """cambiar categoría del ticket"""
-        await self.ticket_cog.rename_ticket_interaction(interaction)
 
 class TicketManager(commands.Cog):
     """sistema de tickets"""
@@ -597,10 +638,10 @@ class TicketManager(commands.Cog):
         try:
             # verificar si el usuario ya tiene un ticket abierto
             guild = interaction.guild
-            user_tickets = [ch for ch in guild.text_channels if ch.name.startswith(f"ticket-{interaction.user.name.lower()}")]
+            user_tickets = [ch for ch in guild.text_channels if ch.name.startswith(f"ticket-") and f"-{interaction.user.name.lower()}" in ch.name]
             
             if user_tickets:
-                await interaction.response.send_message("❌ ya tienes un ticket abierto.", ephemeral=True)
+                await interaction.response.send_message("❌ Ya tienes un ticket abierto.", ephemeral=True)
                 return
             
             # mostrar modal
@@ -629,7 +670,16 @@ class TicketManager(commands.Cog):
             category = guild.get_channel(category_id)
             support_role = guild.get_role(support_role_id)
             
-            # crear canal de ticket
+            # Obtener número de ticket primero para el nombre del canal
+            temp_ticket_number = None
+            with sqlite3.connect(self.db.db_path) as conn:
+                cursor = conn.execute(
+                    "SELECT COUNT(*) FROM tickets WHERE guild_id = ?",
+                    (guild.id,)
+                )
+                temp_ticket_number = cursor.fetchone()[0] + 1
+            
+            # crear canal de ticket con numeración
             overwrites = {
                 guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
                 user: nextcord.PermissionOverwrite(read_messages=True, send_messages=True),
@@ -639,33 +689,36 @@ class TicketManager(commands.Cog):
             # remover overwrites nulos
             overwrites = {k: v for k, v in overwrites.items() if v is not None}
             
-            channel_name = f"ticket-{user.name.lower()}"
+            channel_name = f"ticket-{temp_ticket_number:04d}-{user.name.lower()}"
             ticket_channel = await guild.create_text_channel(
                 channel_name,
                 category=category,
-                overwrites=overwrites
+                overwrites=overwrites,
+                topic=f"Ticket #{temp_ticket_number:04d} - Usuario: {user.display_name} | Motivo: {reason}"
             )
             
             # guardar en base de datos
-            ticket_id = self.db.create_ticket(guild.id, ticket_channel.id, user.id, reason)
+            ticket_number = self.db.create_ticket(guild.id, ticket_channel.id, user.id, reason)
             
-            # mensaje inicial
+            # mensaje inicial mejorado
             embed = nextcord.Embed(
-                title=f"🎫 ticket #{ticket_id}",
-                description=f"**usuario:** {user.mention}\n**motivo:** {reason}",
-                color=nextcord.Color.green()
+                title=f"🎫 Ticket #{ticket_number:04d}",
+                description=f"**👤 Usuario:** {user.mention} (`{user.display_name}`)\n**📝 Motivo:** {reason}\n**🕒 Creado:** <t:{int(datetime.utcnow().timestamp())}:F>",
+                color=nextcord.Color.green(),
+                timestamp=datetime.utcnow()
             )
             embed.add_field(
-                name="📋 información",
-                value="• el staff responderá pronto\n• usa los botones para gestionar el ticket",
+                name="📋 Información",
+                value="• El staff responderá pronto\n• Solo el staff puede cerrar este ticket\n• La transcripción se guardará automáticamente",
                 inline=False
             )
+            embed.set_footer(text=f"Ticket ID: {ticket_number:04d}")
             
             view = TicketControlView(self)
             await ticket_channel.send(embed=embed, view=view)
             await ticket_channel.send(f"{user.mention} {support_role.mention if support_role else ''}")
             
-            await interaction.followup.send(f"✅ ticket creado: {ticket_channel.mention}", ephemeral=True)
+            await interaction.followup.send(f"✅ Ticket #{ticket_number:04d} creado: {ticket_channel.mention}", ephemeral=True)
             
             # log
             if log_channel_id:
@@ -765,31 +818,104 @@ class TicketManager(commands.Cog):
                         "content": content or "[Mensaje vacío]"
                     })
             
-            # Crear transcripción en formato texto
-            transcript_content = f"TRANSCRIPCIÓN DEL TICKET #{ticket_id}\n"
-            transcript_content += f"Canal: {channel.name}\n"
-            transcript_content += f"Fecha de cierre: {datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S')}\n"
-            transcript_content += "=" * 50 + "\n\n"
+            # Crear transcripción en formato texto mejorado
+            ticket_info = self.db.get_ticket(channel.id)
+            user_info = channel.guild.get_member(ticket_info[3]) if ticket_info else None
+            
+            transcript_content = f"=" * 70 + "\n"
+            transcript_content += f"🎫 TRANSCRIPCIÓN DEL TICKET #{ticket_id:04d}\n"
+            transcript_content += f"=" * 70 + "\n"
+            transcript_content += f"📋 Canal: {channel.name}\n"
+            transcript_content += f"👤 Usuario: {user_info.display_name if user_info else 'Desconocido'} ({user_info.id if user_info else 'N/A'})\n"
+            transcript_content += f"🕒 Fecha de cierre: {datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S')}\n"
+            transcript_content += f"📊 Total de mensajes: {len(messages)}\n"
+            transcript_content += f"=" * 70 + "\n\n"
             
             for msg in messages:
                 transcript_content += f"[{msg['timestamp']}] {msg['author']}: {msg['content']}\n"
             
+            transcript_content += f"\n" + "=" * 70 + "\n"
+            transcript_content += f"Fin de la transcripción - Generada automáticamente por DaBot v2\n"
+            transcript_content += f"=" * 70 + "\n"
+            
             # Guardar en archivo
             transcript_file = io.StringIO(transcript_content)
-            file = nextcord.File(transcript_file, filename=f"transcript-{ticket_id}-{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+            filename = f"ticket-{ticket_id:04d}-{user_info.name if user_info else 'unknown'}-{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            file = nextcord.File(transcript_file, filename=filename)
             
-            # Enviar a canal de transcripciones
+            # Enviar a canal de transcripciones - BUSCAR POR NOMBRE SI NO HAY ID
             config = self.db.get_config(channel.guild.id)
+            transcript_sent = False
+            transcript_channel = None
+            
+            # Método 1: Buscar por ID de configuración
             if config and len(config) > 4 and config[4]:  # transcript_channel_id
                 transcript_channel = channel.guild.get_channel(config[4])
-                if transcript_channel:
+            
+            # Método 2: Buscar por nombre de canal si no se encontró por ID
+            if not transcript_channel:
+                for ch in channel.guild.text_channels:
+                    if any(name in ch.name.lower() for name in ['registro-tickets', 'transcripciones', 'ticket-logs', 'registro-ticket']):
+                        transcript_channel = ch
+                        break
+            
+            # Enviar transcripción al canal encontrado
+            if transcript_channel:
+                try:
                     embed = nextcord.Embed(
-                        title=f"📝 Transcripción Ticket #{ticket_id}",
-                        description=f"**Canal:** {channel.name}\n**Total mensajes:** {len(messages)}",
+                        title=f"📝 Transcripción Ticket #{ticket_id:04d}",
+                        description=f"**👤 Usuario:** {user_info.mention if user_info else 'Usuario desconocido'}\n**📋 Canal:** `{channel.name}`\n**📊 Mensajes:** {len(messages)}\n**🕒 Cerrado:** <t:{int(datetime.utcnow().timestamp())}:F>",
                         color=nextcord.Color.blue(),
                         timestamp=datetime.utcnow()
                     )
+                    embed.add_field(
+                        name="📂 Archivo",
+                        value=f"```{filename}```",
+                        inline=False
+                    )
+                    embed.set_footer(text=f"Ticket ID: {ticket_id:04d} • Canal: {transcript_channel.name}")
+                    
                     await transcript_channel.send(embed=embed, file=file)
+                    transcript_sent = True
+                    logger.info(f"Transcripción enviada a {transcript_channel.name}")
+                except Exception as send_error:
+                    logger.error(f"Error enviando transcripción: {send_error}")
+            
+            # Si no se pudo enviar al canal de transcripciones, buscar canal de logs
+            if not transcript_sent:
+                log_channel = None
+                
+                # Buscar canal de logs por ID
+                if config and config[3]:
+                    log_channel = channel.guild.get_channel(config[3])
+                
+                # Buscar canal de logs por nombre si no se encontró por ID
+                if not log_channel:
+                    for ch in channel.guild.text_channels:
+                        if any(name in ch.name.lower() for name in ['logs', 'registro', 'moderacion']):
+                            log_channel = ch
+                            break
+                
+                if log_channel:
+                    try:
+                        # Crear nuevo archivo ya que el anterior se consumió
+                        transcript_file = io.StringIO(transcript_content)
+                        file = nextcord.File(transcript_file, filename=filename)
+                        
+                        embed = nextcord.Embed(
+                            title=f"📝 Transcripción Ticket #{ticket_id:04d}",
+                            description=f"**👤 Usuario:** {user_info.mention if user_info else 'Usuario desconocido'}\n**📋 Canal:** `{channel.name}`\n**📊 Mensajes:** {len(messages)}",
+                            color=nextcord.Color.orange(),
+                            timestamp=datetime.utcnow()
+                        )
+                        embed.set_footer(text=f"Enviado a {log_channel.name} - Canal de transcripciones no encontrado")
+                        
+                        await log_channel.send(embed=embed, file=file)
+                        logger.info(f"Transcripción enviada a canal de logs: {log_channel.name}")
+                    except Exception as log_error:
+                        logger.error(f"Error enviando a logs: {log_error}")
+                else:
+                    logger.warning("No se encontró canal para enviar transcripción")
                     
         except Exception as e:
             logger.error(f"Error guardando transcripción: {e}")

@@ -198,82 +198,79 @@ class Interactions(commands.Cog):
             await interaction.followup.send("❌ No pude obtener una imagen de pato. ¡Inténtalo de nuevo!")
     
     # comandos de interacciones
-    async def create_interaction_command(self, interaction_type):
-        """crear comando de interacción genérico"""
-        async def interaction_command(interaction: nextcord.Interaction, usuario: nextcord.Member):
-            if usuario.id == interaction.user.id:
-                await interaction.response.send_message(f"❌ ¡No puedes {interaction_type} a ti mismo!", ephemeral=True)
-                return
-            
-            if usuario.bot:
-                await interaction.response.send_message("❌ ¡No puedes interactuar con bots!", ephemeral=True)
-                return
-            
-            await interaction.response.defer()
-            
-            gif_url = await self.get_interaction_gif(interaction_type)
-            
-            if gif_url:
-                # elegir texto aleatorio
-                texts = self.interaction_texts.get(interaction_type, [f"{{author}} {interaction_type} a {{target}}"])
-                text = random.choice(texts).format(
-                    author=interaction.user.display_name,
-                    target=usuario.display_name
-                )
-                
-                embed = nextcord.Embed(
-                    description=text,
-                    color=0xe91e63
-                )
-                embed.set_image(url=gif_url)
-                embed.set_footer(text="Powered by waifu.pics")
-                
-                await interaction.followup.send(embed=embed)
-            else:
-                text = f"{interaction.user.display_name} {interaction_type} a {usuario.display_name}!"
-                await interaction.followup.send(text)
+    async def execute_interaction(self, interaction: nextcord.Interaction, usuario: nextcord.Member, interaction_type: str):
+        """ejecutar comando de interacción genérico"""
+        if usuario.id == interaction.user.id:
+            await interaction.response.send_message(f"❌ ¡No puedes {interaction_type} a ti mismo!", ephemeral=True)
+            return
         
-        return interaction_command
+        if usuario.bot:
+            await interaction.response.send_message("❌ ¡No puedes interactuar con bots!", ephemeral=True)
+            return
+        
+        await interaction.response.defer()
+        
+        gif_url = await self.get_interaction_gif(interaction_type)
+        
+        if gif_url:
+            # elegir texto aleatorio
+            texts = self.interaction_texts.get(interaction_type, [f"{{author}} {interaction_type} a {{target}}"])
+            text = random.choice(texts).format(
+                author=interaction.user.display_name,
+                target=usuario.display_name
+            )
+            
+            embed = nextcord.Embed(
+                description=text,
+                color=0xe91e63
+            )
+            embed.set_image(url=gif_url)
+            embed.set_footer(text="Powered by waifu.pics")
+            
+            await interaction.followup.send(embed=embed)
+        else:
+            text = f"{interaction.user.display_name} {interaction_type} a {usuario.display_name}!"
+            await interaction.followup.send(text)
     
     @nextcord.slash_command(name="abrazar", description="Abraza a alguien")
     async def hug_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de abrazo"""
-        await self.create_interaction_command('hug')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'hug')
     
     @nextcord.slash_command(name="besar", description="Besa a alguien")
     async def kiss_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de beso"""
-        await self.create_interaction_command('kiss')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'kiss')
     
     @nextcord.slash_command(name="abofetear", description="Abofetea a alguien")
     async def slap_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de bofetada"""
-        await self.create_interaction_command('slap')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'slap')
     
     @nextcord.slash_command(name="acariciar", description="Acaricia a alguien")
     async def pat_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de caricias"""
-        await self.create_interaction_command('pat')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'pat')
     
     @nextcord.slash_command(name="acurrucar", description="Te acurrucas con alguien")
     async def cuddle_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de acurrucarse"""
-        await self.create_interaction_command('cuddle')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'cuddle')
     
     @nextcord.slash_command(name="tocar", description="Toca a alguien")
     async def poke_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de tocar"""
-        await self.create_interaction_command('poke')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'poke')
     
     @nextcord.slash_command(name="morder", description="Muerde a alguien")
     async def bite_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de morder"""
-        await self.create_interaction_command('bite')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'bite')
     
     @nextcord.slash_command(name="bonk", description="Bonk a alguien (horny jail)")
     async def bonk_command(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
         """comando de bonk"""
-        await self.create_interaction_command('bonk')(interaction, usuario)
+        await self.execute_interaction(interaction, usuario, 'bonk')
     
     @nextcord.slash_command(name="interact", description="Menú de interacciones rápidas")
     async def interact_menu(self, interaction: nextcord.Interaction, usuario: nextcord.Member):
